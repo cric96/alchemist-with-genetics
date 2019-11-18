@@ -3,7 +3,7 @@
  */
 
 plugins {
-    `java-library`
+    application
 }
 
 repositories {
@@ -15,8 +15,51 @@ repositories {
      * maven("https://dl.bintray.com/protelis/Protelis/")
      */
 }
-
+/*
+ * Only required if you plan to use Protelis, remove otherwise
+ */
+sourceSets {
+    main {
+        resources {
+            srcDir("src/main/protelis")
+        }
+    }
+}
 dependencies {
     // it is highly recommended to replace the '+' symbol with a fixed version
-    api("it.unibo.alchemist:alchemist:+")
+    implementation("it.unibo.alchemist:alchemist:+")
 }
+
+val alchemistGroup = "Run Alchemist"
+/*
+ * This task is used to run all experiments in sequence
+ */
+val runAll by tasks.register<DefaultTask>("runAll") {
+    group = alchemistGroup
+    description = "Launches all simulations"
+}
+/*
+ * Scan the folder with the simulation files, and create a task for each one of them.
+ */
+File(rootProject.rootDir.path + "/src/main/yaml").listFiles()
+    .filter { it.extension == "yml" }
+    .sortedBy { it.nameWithoutExtension }
+    .forEach {
+        val task by tasks.register<JavaExec>("run${it.nameWithoutExtension.capitalize()}") {
+            group = alchemistGroup
+            description = "Launches simulation ${it.nameWithoutExtension}"
+            main = "it.unibo.alchemist.Alchemist"
+            classpath = sourceSets["main"].runtimeClasspath
+            //.filter { it.isDirectory } + classpathJar.outputs.files // Uncomment to switch to jar-based cp resolution
+            args(
+                "-y", it.absolutePath,
+                "-g", "effects/${it.nameWithoutExtension}.aes"
+            )
+            if (System.getenv("CI") == "true") {
+                args("-hl", "-t", "10")
+            }
+        }
+        // task.dependsOn(classpathJar) // Uncomment to switch to jar-based cp resolution
+        runAll.dependsOn(task)
+    }
+
