@@ -50,7 +50,6 @@ File(rootProject.rootDir.path + "/src/main/yaml").listFiles()
             description = "Launches simulation ${it.nameWithoutExtension}"
             main = "it.unibo.alchemist.Alchemist"
             classpath = sourceSets["main"].runtimeClasspath
-            //.filter { it.isDirectory } + classpathJar.outputs.files // Uncomment to switch to jar-based cp resolution
             args(
                 "-y", it.absolutePath,
                 "-g", "effects/${it.nameWithoutExtension}.aes"

@@ -1,1 +1,20 @@
-language: java
+language: bash
+git:
+  depth: false
+os:
+  - osx
+  - windows
+  - linux
+env:
+  global:
+    - TERM=dumb
+    - GRAVIS="https://raw.githubusercontent.com/DanySK/Gravis-CI/master/"
+  matrix:
+    - JDK="adopt@1.11"
+    - JDK="adopt-openj9@1.11"
+    - JDK="adopt@1.12"
+    - JDK="adopt-openj9@1.12"
+    - JDK="adopt@1.13"
+    - JDK="adopt-openj9@1.13"
+install: true
+script: ./gradlew runAll
