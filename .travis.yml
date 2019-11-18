@@ -16,5 +16,7 @@ env:
     - JDK="adopt-openj9@1.12"
     - JDK="adopt@1.13"
     - JDK="adopt-openj9@1.13"
-install: true
+install:
+  - curl "${GRAVIS}.install-jdk-travis.sh" --output .install-jdk-travis.sh
+  - source .install-jdk-travis.sh
 script: ./gradlew runAll
