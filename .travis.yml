@@ -19,7 +19,7 @@ env:
 install:
   - travis_retry curl "${GRAVIS}.install-jdk-travis.sh" --output .install-jdk-travis.sh
   - travis_retry source .install-jdk-travis.sh
-script: travis_retry ./gradlew runAll
+script: travis_retry ./gradlew runAll || sleep 60 && false
 before_cache:
   - curl "${GRAVIS}.clean_gradle_cache.sh" --output .clean_gradle_cache.sh
   - bash .clean_gradle_cache.sh
