@@ -61,11 +61,10 @@ File(rootProject.rootDir.path + "/src/main/yaml").listFiles()
             }
             args("-y", it.absolutePath, "-e", "$exportsDir/${it.nameWithoutExtension}-${System.currentTimeMillis()}")
             if (System.getenv("CI") == "true" || batch == "true") {
-                args("-hl")
+                args("-hl", "-t", maxTime)
             } else {
                 args("-g", "effects/${it.nameWithoutExtension}.aes")
             }
-            args("-t", maxTime)
             outputs.dir(exportsDir)
         }
         // task.dependsOn(classpathJar) // Uncomment to switch to jar-based cp resolution

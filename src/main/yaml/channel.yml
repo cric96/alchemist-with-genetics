@@ -4,27 +4,49 @@ variables:
   # max distance for considering two nodes as neighbours
   linkingDistance: &linkingDistance
     min: 0.1
-    max: 0.6
+    max: 0.9
     step: 0.1
-    default: 0.4
-  # minimum threshold for considering two floating point as different
-  threshold: &threshold
-    min: 0.001
-    max: 0.01
-    step: 0.001
-    default: 0.001
+    default: 0.3
+  channelWidth: &channelWidth
+    min: 0.2
+    max: 1
+    step: 0.1
+    default: 0.5
+
+seeds:
+  scenario: 0
+  simulation: 1
+
+environment:
+  # Bi-dimensional euclidean space
+  type: Continuous2DEnvironment
 
 network-model:
+  # nodes are considered as neighbours on a per-distance basis
   type: ConnectWithinDistance
   parameters:
+    # the threshold
     - *linkingDistance
 
-channel: &channel
-  - time-distribution: 1
-    program: |
-      import protelis:coord:spreading
-      channel(env.has("source"), env.has("destination"), env.has("threshold"))
-  - program: send
+reactions:
+  move: &move
+    - time-distribution:
+        type: ExponentialTime
+        parameters: [1]
+      type: Event
+      actions:
+        - type: BrownianMove
+          parameters: [0.01]
+  channel: &channel
+    - time-distribution: 2
+#        type: DiracComb
+#        parameters: [1]
+      program: |
+        module example:channel
+
+        import protelis:coord:spreading
+        channel2(env.has("source"), env.has("destination"), env.get("width"))
+    - program: send
 
 displacements:
   - in:
@@ -41,10 +63,11 @@ displacements:
           parameters: [4, 4, 6, 6]
         molecule: destination
         concentration: true
-      - molecule: threshold
-        concentration: *threshold
+      - molecule: width
+        concentration: *channelWidth
     programs:
       - *channel
+#      - *move
 
 export:
   - time
@@ -53,5 +76,5 @@ export:
     aggregators: [sum]
   - molecule: destination
     aggregators: [sum]
-  - molecule: default_module:default_program
+  - molecule: example:channel
     aggregators: [sum]
