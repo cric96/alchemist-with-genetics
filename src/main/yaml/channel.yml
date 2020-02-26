@@ -1,0 +1,57 @@
+incarnation: protelis
+
+variables:
+  # max distance for considering two nodes as neighbours
+  linkingDistance: &linkingDistance
+    min: 0.1
+    max: 0.6
+    step: 0.1
+    default: 0.4
+  # minimum threshold for considering two floating point as different
+  threshold: &threshold
+    min: 0.001
+    max: 0.01
+    step: 0.001
+    default: 0.001
+
+network-model:
+  type: ConnectWithinDistance
+  parameters:
+    - *linkingDistance
+
+channel: &channel
+  - time-distribution: 1
+    program: |
+      import protelis:coord:spreading
+      channel(env.has("source"), env.has("destination"), env.has("threshold"))
+  - program: send
+
+displacements:
+  - in:
+      type: Grid
+      parameters: [-5, -5, 5, 5, 0.25, 0.25, 0.1, 0.1]
+    contents:
+      - in:
+          type: Rectangle
+          parameters: [-6, -6, 2, 2]
+        molecule: source
+        concentration: true
+      - in:
+          type: Rectangle
+          parameters: [4, 4, 6, 6]
+        molecule: destination
+        concentration: true
+      - molecule: threshold
+        concentration: *threshold
+    programs:
+      - *channel
+
+export:
+  - time
+  - number-of-nodes
+  - molecule: source
+    aggregators: [sum]
+  - molecule: destination
+    aggregators: [sum]
+  - molecule: default_module:default_program
+    aggregators: [sum]
