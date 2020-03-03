@@ -30,6 +30,9 @@ dependencies {
     implementation("it.unibo.alchemist:alchemist:+")
 }
 
+val batch: String by project
+val maxTime: String by project
+
 val alchemistGroup = "Run Alchemist"
 /*
  * This task is used to run all experiments in sequence
@@ -50,13 +53,19 @@ File(rootProject.rootDir.path + "/src/main/yaml").listFiles()
             description = "Launches simulation ${it.nameWithoutExtension}"
             main = "it.unibo.alchemist.Alchemist"
             classpath = sourceSets["main"].runtimeClasspath
-            args(
-                "-y", it.absolutePath,
-                "-g", "effects/${it.nameWithoutExtension}.aes"
-            )
-            if (System.getenv("CI") == "true") {
-                args("-hl", "-t", "10")
+            val exportsDir = File("${projectDir.path}/build/exports/${it.nameWithoutExtension}")
+            doFirst {
+                if (!exportsDir.exists()) {
+                    exportsDir.mkdirs()
+                }
             }
+            args("-y", it.absolutePath, "-e", "$exportsDir/${it.nameWithoutExtension}-${System.currentTimeMillis()}")
+            if (System.getenv("CI") == "true" || batch == "true") {
+                args("-hl", "-t", maxTime)
+            } else {
+                args("-g", "effects/${it.nameWithoutExtension}.aes")
+            }
+            outputs.dir(exportsDir)
         }
         // task.dependsOn(classpathJar) // Uncomment to switch to jar-based cp resolution
         runAll.dependsOn(task)
