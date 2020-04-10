@@ -26,8 +26,10 @@ sourceSets {
     }
 }
 dependencies {
-    // it is highly recommended to replace the '+' symbol with a fixed version
-    implementation("it.unibo.alchemist:alchemist:+")
+    // The version of Alchemist can be controlled by changing the version.properties file
+    implementation("it.unibo.alchemist:alchemist:_")
+    implementation("it.unibo.alchemist:alchemist-incarnation-protelis:_")
+    implementation("it.unibo.alchemist:alchemist-swingui:_")
 }
 
 val batch: String by project
