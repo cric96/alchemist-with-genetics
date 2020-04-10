@@ -22,11 +22,11 @@ For each YAML file in `src/main/yaml` a task `runFileName` will be created.
 
 In order to launch, open a terminal and move to the project root folder, then on UNIX:
 ```bash
-./gradlew runAlchemist
+./gradlew runAll
 ```
 On Windows:
 ```
-gradlew.bat runAlchemist
+gradlew.bat runAll
 ```
 
 Press <kb>P</kb> to start the simulation.
@@ -35,6 +35,46 @@ For further information about the gui, see the [graphical interface shortcuts](h
 Note that the first launch will be rather slow, since Gradle will download all the required files.
 They will get cached in the user's home folder (as per Gradle normal behavior).
 
+## The build script
+
+Let's explain how things work by looking at the `build.gradle.kts` script. First of all, we need to add Alchemist as a dependency, thus you will see something like this:
+```kotlin
+dependencies {
+    implementation("it.unibo.alchemist:alchemist:SOME_ALCHEMIST_VERSION")
+}
+```
+With `SOME_ALCHEMIST_VERSION` replaced by the version used, nothing special actually. 
+
+You will either need to import the full version of alchemist (but it's not recommended, as it pulls in a lot of dependencies you probably don't want), or manually declare which modules you want to run Alchemist.
+At the very least, you want to pull in an incarnation.
+
+```kotlin
+dependencies {
+    // Alchemist full, with a lot of goodies you do not need
+    implementation("it.unibo.alchemist:alchemist-full:SOME_ALCHEMIST_VERSION")
+}
+```
+
+```kotlin
+dependencies {
+    // Example import of Protelis and the module for importing traces and simulating on real world maps
+    implementation("it.unibo.alchemist:alchemist:SOME_ALCHEMIST_VERSION")
+    implementation("it.unibo.alchemist:alchemist-incarnation-protelis:SOME_ALCHEMIST_VERSION")
+    implementation("it.unibo.alchemist:alchemist-maps:SOME_ALCHEMIST_VERSION")
+}
+```
+
+The remainder of the script defines a number of tasks for this project, meant to let you run Alchemist easily from the command line through Gradle.
+There will be one task for each simulation file in `src/main/yaml`, dynamically detected and prepared by Gradle.
+You can see a summary of the tasks for running Alchemist by issuing
+`./gradlew tasks --all`
+(or `gradlew.bat tasks --all` under Windows)
+and looking for the `Run Alchemist` task group.
+
+Internally, the task relies on the Alchemist [command line interface](#command-line-interface), to run a simulation we can use the `-y` option followed by the path to the simulation file. Alchemist simulations are contained in *.yml files, more information about how to write such simulations can be found [here](https://alchemistsimulator.github.io/wiki/usage/yaml/).
+
+Ok, that's it. You should be able to use Alchemist via Gradle in your own project now, or at least have a clue.
+
 ## Command line interface
 
 The CLI supports the following options
@@ -42,7 +82,6 @@ The CLI supports the following options
 | Option                                     | Effect                                                                                                                                                                            |
 |--------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | -b,--batch                                 | Runs in batch mode. If one or more -var parameters are specified, multiple simulation runs will be executed in parallel with all the combinations of values.                      |
-| -bmk,--benchmark \<file>                    | Performs a benchmark with the provided simulation, measuring the total execution time. Saves result in given file.                                                                |
 | -cc,--comment-char                         | Sets the char that will be used to mark a data file line as commented. Defaults to #. (To be implemented)                                                                         |
 | -d,--distributed \<file>                    | Distribute simulations in computer grid                                                                                                                                           |
 | -e,--export \<file>                         | Exports the results onto a file                                                                                                                                                   |
