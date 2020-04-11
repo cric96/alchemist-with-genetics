@@ -28,7 +28,7 @@ jobs:
   exclude:
     stage: test
     os: linux
-    env: reference_jdk
+    env: *reference_jdk
   include:
     os: linux
     stage: check
