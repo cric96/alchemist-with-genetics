@@ -1,25 +1,45 @@
+_reference_jdk: &reference_jdk
+  JDK="adopt@1.11"
+
 language: bash
 git:
   depth: false
+
 os:
   - osx
   - windows
   - linux
+
+stages:
+  - check
+  - test
+
 env:
   global:
     - TERM=dumb
     - GRAVIS_REPO="https://github.com/DanySK/Gravis-CI.git"
     - GRAVIS="$HOME/gravis"
   matrix:
-    - JDK="adopt@1.11"
+    - *reference_jdk
     - JDK="adopt-openj9@1.11"
     - JDK="adopt"
     - JDK="adopt-openj9"
+jobs:
+  exclude:
+    stage: test
+    os: linux
+    env: reference_jdk
+  include:
+    os: linux
+    stage: check
+
 before_install:
   - travis_retry git clone --depth 1 $GRAVIS_REPO $GRAVIS
   - source $GRAVIS/install-jdk
+
 script:
   - travis_retry ./gradlew clean runAll
+
 before_cache:
   - $GRAVIS/clean-gradle-cache
 cache:
