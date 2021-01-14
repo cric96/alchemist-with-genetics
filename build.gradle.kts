@@ -8,12 +8,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    /* 
-     * The following repositories contain beta features and should be added for experimental mode only
-     * 
-     * maven("https://dl.bintray.com/alchemist-simulator/Alchemist/")
-     * maven("https://dl.bintray.com/protelis/Protelis/")
-     */
 }
 /*
  * Only required if you plan to use Protelis, remove otherwise
