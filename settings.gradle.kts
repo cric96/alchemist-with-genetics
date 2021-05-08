@@ -7,4 +7,4 @@ buildscript {
 
 bootstrapRefreshVersionsAndDependencies()
 
-rootProject.name = "alchemist-primer"
+rootProject.name = "alchemist-with-genetics"

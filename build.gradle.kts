@@ -4,6 +4,7 @@
 
 plugins {
     application
+    kotlin("jvm") version "1.5.0"
 }
 
 repositories {
@@ -14,7 +15,9 @@ repositories {
  */
 sourceSets {
     main {
+        java.srcDirs( "src/main/kotlin")
         resources {
+            srcDir("src/main/yaml")
             srcDir("src/main/protelis")
         }
     }
@@ -24,6 +27,7 @@ dependencies {
     implementation("it.unibo.alchemist:alchemist:_")
     implementation("it.unibo.alchemist:alchemist-incarnation-protelis:_")
     implementation("it.unibo.alchemist:alchemist-swingui:_")
+    implementation("org.encog:encog-core:3.3.0")
 }
 
 val batch: String by project
