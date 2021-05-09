@@ -1,9 +1,10 @@
-/*
- * DEFAULT GRADLE BUILD FOR ALCHEMIST SIMULATOR
- */
+val scafiVersion = "0.3.3"
+val scalaVersionMajor = "2.13"
+val scalaVersionMinor = ".2"
 
 plugins {
     application
+    scala
     kotlin("jvm") version "1.5.0"
 }
 
@@ -15,19 +16,22 @@ repositories {
  */
 sourceSets {
     main {
-        java.srcDirs( "src/main/kotlin")
+        java.srcDirs( "src/main/kotlin", "src/main/scala")
         resources {
             srcDir("src/main/yaml")
-            srcDir("src/main/protelis")
         }
     }
 }
 dependencies {
     // The version of Alchemist can be controlled by changing the version.properties file
     implementation("it.unibo.alchemist:alchemist:_")
-    implementation("it.unibo.alchemist:alchemist-incarnation-protelis:_")
+    implementation("it.unibo.alchemist:alchemist-incarnation-scafi:_")
     implementation("it.unibo.alchemist:alchemist-swingui:_")
     implementation("org.encog:encog-core:3.3.0")
+    // ScaFi version
+    implementation("it.unibo.scafi:scafi-core_$scalaVersionMajor:$scafiVersion")
+    // Scala Dependencies
+    implementation("org.scala-lang:scala-library:$scalaVersionMajor$scalaVersionMinor")
 }
 
 val batch: String by project
