@@ -3,18 +3,20 @@ package it.unibo.neat
 import org.encog.ml.MLMethod
 import org.encog.ml.MLRegression
 import org.encog.ml.data.basic.BasicMLData
-import org.encog.neural.neat.NEATNetwork
 import org.encog.neural.neat.NEATPopulation
 import org.encog.neural.neat.NEATUtil
-import java.lang.IllegalArgumentException
 import java.util.stream.Stream
 import kotlin.streams.toList
 
 fun main() {
     val stopWhen = 0.001
-    val pop = NEATPopulation(2, 1, 50)
+    val inputCount = 2
+    val outputCount = 1
+    val populationSize = 50
+    val simulationFile = "hop-count.yml"
+    val pop = NEATPopulation(inputCount, outputCount, populationSize)
     pop.reset()
-    val alchemistScore = AlchemistScoreCalculation("simulation.yml")
+    val alchemistScore = AlchemistScoreCalculation(simulationFile)
     val evolutionLoop = Stream.iterate(NEATUtil.constructNEATTrainer(pop, alchemistScore)) { train -> train.iteration(); train }
     val train = evolutionLoop.takeWhile { it.error > stopWhen }
             .peek { println("Epoch #" + it.iteration + " Error:" + it.error + ", Species:" + pop.species.size) }
