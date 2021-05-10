@@ -9,7 +9,7 @@ class ScafiHopCountUsage
     with StandardSensors
     with ScafiAlchemistSupport
     with FieldUtils {
-  private val howMany = 10.0 //helps to normalize nodes..
+  private val howMany = 16.0 //helps to normalize nodes..
   override def main(): Any = {
     val regression = node.get[NEATNetwork]("regression")
     rep(howMany) { data => {

@@ -84,3 +84,8 @@ File(rootProject.rootDir.path + "/src/main/yaml").listFiles()
         // task.dependsOn(classpathJar) // Uncomment to switch to jar-based classpath resolution
         runAll.dependsOn(task)
     }
+
+tasks.register("hopCountRun", JavaExec::class.java) {
+    classpath = sourceSets.main.get().runtimeClasspath
+    main = "it.unibo.neat.HopCountMainKt"
+}
