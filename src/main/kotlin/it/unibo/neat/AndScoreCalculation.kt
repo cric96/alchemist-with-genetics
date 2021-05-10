@@ -11,17 +11,10 @@ import org.encog.ml.MLMethod
 import org.encog.ml.MLRegression
 import kotlin.math.abs
 
-class AndScoreCalculation(file : String, maxTime : Double = 1.0) : AbstractAlchemistScoreCalculation(file, maxTime) {
+class AndScoreCalculation(file : String, maxTime : Double = 1.0) : AbstractAlchemistScoreCalculation(file, maxTime), PimpNode {
     override fun evalSimulation(simulation: Engine<Any, Position<*>>): Double {
         return simulation.environment.nodes.sumOf { node ->
-            abs(node.getDouble("input0") * node.getDouble("input1") - node.getDouble("output"))
-        }
-    }
-
-    fun Node<Any>.getDouble(name : String) : Double {
-        when(val molecule = this.getConcentration(SimpleMolecule(name))) {
-            is Double -> return molecule
-            else -> throw java.lang.IllegalArgumentException("molecule isn't a double")
+            abs(node.dataDouble("input0") * node.dataDouble("input1") - node.dataDouble("output"))
         }
     }
 }

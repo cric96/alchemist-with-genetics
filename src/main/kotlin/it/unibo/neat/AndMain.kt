@@ -4,12 +4,12 @@ import org.encog.ml.MLRegression
 import org.encog.ml.data.basic.BasicMLData
 import kotlin.system.exitProcess
 
-fun main(vararg elements : String) {
+fun main() {
     val stopWhen = 0.001
     val inputCount = 2
     val outputCount = 1
     val populationSize = 100
-    val simulationFile = elements.getOrElse(0) { "hop-count.yml" }
+    val simulationFile = "simulation.yml"
     val alchemistScore = AndScoreCalculation(simulationFile)
     val net = NeatAlgorithm.returnBest(alchemistScore, inputCount, outputCount, populationSize) { it.error > stopWhen }
     when(net) {

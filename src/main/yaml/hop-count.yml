@@ -9,7 +9,7 @@ _gradient: &gradient
     type: Event
     actions:
       - type: RunScafiProgram
-        parameters: [it.unibo.neat.ScafiRegressionUsage, 5.0] # second argument is retention time
+        parameters: [it.unibo.neat.ScafiHopCountUsage, 5.0] # second argument is retention time
   - program: send
 
 deployments:
