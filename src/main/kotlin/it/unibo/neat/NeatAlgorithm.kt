@@ -8,12 +8,17 @@ import org.encog.neural.neat.NEATPopulation
 import org.encog.neural.neat.NEATUtil
 import java.util.stream.Stream
 import kotlin.streams.toList
+import kotlin.system.measureTimeMillis
 
 object NeatAlgorithm {
     fun exec(calculation : CalculateScore, input : Int, output : Int, populationSize : Int, stopWhen : (TrainEA) -> Boolean) : TrainEA {
         val pop = NEATPopulation(input, output, populationSize)
         pop.reset()
-        val evolutionLoop = Stream.iterate(NEATUtil.constructNEATTrainer(pop, calculation)) { train -> train.iteration(); train }
+        val evolutionLoop = Stream.iterate(NEATUtil.constructNEATTrainer(pop, calculation)) { train ->
+            val time = measureTimeMillis {  train.iteration() }
+            println("Time $time")
+            train
+        }
         val train = evolutionLoop.takeWhile(stopWhen)
             .peek { println("Epoch #" + it.iteration + " Error:" + it.error + ", Species:" + pop.species.size) }
             .toList()

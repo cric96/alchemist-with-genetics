@@ -11,7 +11,7 @@ class MinCountCalculation(file : String, time : Double = 2.0) : AbstractAlchemis
     override fun evalSimulation(simulation: Engine<Any, Position<*>>): Double {
         val sourceNodes = simulation.environment.nodes.filter { it.contains(SimpleMolecule("source")) }.toSet()
         hopCountBreadthSearch(simulation.environment, sourceNodes, emptySet())
-        return simulation.environment.nodes.sumOf { node -> abs(node.dataDouble("result") - node.dataDouble("output")) }
+        return simulation.environment.nodes.sumOf { node -> abs(node.dataDouble("result") - node.dataDouble("output")) } / simulation.environment.nodeCount
     }
 
     fun hopCountBreadthSearch(environment: Environment<Any, Position<*>>, toExpand : Set<Node<Any>>, visited : Set<Node<Any>>, level : Int = 0) {
