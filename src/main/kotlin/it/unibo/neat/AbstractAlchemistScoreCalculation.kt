@@ -30,8 +30,7 @@ abstract class AbstractAlchemistScoreCalculation(private val file : String, val 
 
     override fun shouldMinimize(): Boolean { return true }
 
-    //for now..
-    override fun requireSingleThreaded(): Boolean { return true }
+    override fun requireSingleThreaded(): Boolean { return false }
 
     protected abstract fun evalSimulation(simulation : Engine<Any, Position<*>>) : Double
 }
