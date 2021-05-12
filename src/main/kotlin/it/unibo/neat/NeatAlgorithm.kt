@@ -1,7 +1,6 @@
 package it.unibo.neat
 
 import org.encog.ml.CalculateScore
-import org.encog.ml.MLMethod
 import org.encog.ml.MLRegression
 import org.encog.ml.ea.train.basic.TrainEA
 import org.encog.neural.neat.NEATPopulation
@@ -26,7 +25,7 @@ object NeatAlgorithm {
         return train
     }
 
-    fun returnBest(calculation : CalculateScore, input : Int, output : Int, populationSize : Int, stopWhen : (TrainEA) -> Boolean) : MLMethod {
+    fun returnBest(calculation : CalculateScore, input : Int, output : Int, populationSize : Int, stopWhen : (TrainEA) -> Boolean) : MLRegression {
         val genetics : TrainEA = exec(calculation, input, output, populationSize, stopWhen)
         when(val best = genetics.codec.decode(genetics.bestGenome)) {
             is MLRegression -> return best

@@ -5,13 +5,16 @@ import it.unibo.alchemist.model.implementations.molecules.SimpleMolecule
 import it.unibo.alchemist.model.interfaces.Environment
 import it.unibo.alchemist.model.interfaces.Node
 import it.unibo.alchemist.model.interfaces.Position
-import kotlin.math.abs
+import kotlin.math.pow
+import kotlin.math.round
 
 class MinCountCalculation(file : String, time : Double = 2.0) : AbstractAlchemistScoreCalculation(file, time), PimpNode {
     override fun evalSimulation(simulation: Engine<Any, Position<*>>): Double {
         val sourceNodes = simulation.environment.nodes.filter { it.contains(SimpleMolecule("source")) }.toSet()
         hopCountBreadthSearch(simulation.environment, sourceNodes, emptySet())
-        return simulation.environment.nodes.sumOf { node -> abs(node.dataDouble("result") - node.dataDouble("output")) } / simulation.environment.nodeCount
+        return simulation.environment.nodes.sumOf { node ->
+            (node.dataDouble("result") - round(node.dataDouble("output"))).pow(2.0)
+        }
     }
 
     fun hopCountBreadthSearch(environment: Environment<Any, Position<*>>, toExpand : Set<Node<Any>>, visited : Set<Node<Any>>, level : Int = 0) {
