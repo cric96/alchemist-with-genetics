@@ -21,7 +21,7 @@ The target program is simple (the classic hop count).
 As a Neuroevolution algorithm, I choose NEAT (Neuroevolution of augmenting topologies) because it is
 simple and intuitive. Furthermore, in literature is used in different work with good results.
 
-## Results
+## 🔴 Results
 
 Currently, there isn't any good result found. The fitness goes to 0 but, when I try the network in 
 a test set, the algorithm has not generalized well.
