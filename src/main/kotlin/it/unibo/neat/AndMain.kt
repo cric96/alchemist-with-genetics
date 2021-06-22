@@ -12,14 +12,9 @@ fun main() {
     val simulationFile = "simulation.yml"
     val alchemistScore = AndScoreCalculation(simulationFile)
     val net = NeatAlgorithm.returnBest(alchemistScore, inputCount, outputCount, populationSize) { it.error > stopWhen }
-    when(net) {
-        is MLRegression -> {
-            println(net.compute(BasicMLData(doubleArrayOf(1.0, 1.0))))
-            println(net.compute(BasicMLData(doubleArrayOf(0.0, 0.0))))
-            println(net.compute(BasicMLData(doubleArrayOf(1.0, 0.0))))
-            println(net.compute(BasicMLData(doubleArrayOf(0.0, 1.0))))
-        }
-        else -> throw IllegalArgumentException("not reachable..")
-    }
+    println(net.compute(BasicMLData(doubleArrayOf(1.0, 1.0))))
+    println(net.compute(BasicMLData(doubleArrayOf(0.0, 0.0))))
+    println(net.compute(BasicMLData(doubleArrayOf(1.0, 0.0))))
+    println(net.compute(BasicMLData(doubleArrayOf(0.0, 1.0))))
     exitProcess(0)
 }
