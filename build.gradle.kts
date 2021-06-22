@@ -1,6 +1,8 @@
 val scafiVersion = "0.3.3"
 val scalaVersionMajor = "2.13"
 val scalaVersionMinor = ".2"
+val jeneticsVersion = "6.2.0"
+val deepLearningVersion = "1.0.0-M1"
 
 plugins {
     application
@@ -32,6 +34,12 @@ dependencies {
     implementation("it.unibo.scafi:scafi-core_$scalaVersionMajor:$scafiVersion")
     // Scala Dependencies
     implementation("org.scala-lang:scala-library:$scalaVersionMajor$scalaVersionMinor")
+    // Jenetics
+    implementation("io.jenetics", "jenetics", jeneticsVersion)
+    implementation("io.jenetics", "jenetics.prog", jeneticsVersion)
+    // Deep Learning4J
+    implementation("org.deeplearning4j", "deeplearning4j-core", deepLearningVersion)
+    implementation("org.nd4j", "nd4j-native-platform", deepLearningVersion)
 }
 
 val batch: String by project
