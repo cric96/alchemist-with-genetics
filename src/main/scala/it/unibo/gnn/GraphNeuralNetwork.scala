@@ -1,18 +1,22 @@
 package it.unibo.gnn
 
-import it.unibo.gnn.GraphNeuralNetwork.GraphLayer
-import org.nd4j.linalg.activations.Activation
-class GraphNeuralNetwork(layers : GraphLayer*)
+import it.unibo.gnn.GraphNeuralNetwork.{NeighborhoodData, NodeState}
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
+import org.nd4j.linalg.api.ndarray.INDArray
+import org.nd4j.linalg.cpu.nativecpu.NDArray
+case class GraphNeuralNetwork(stateEvolution : MultiLayerNetwork, outputEvaluation : MultiLayerNetwork ) {
+  def eval(feature : INDArray, neighborhood: List[NeighborhoodData]) : NodeState = {
+    val state = neighborhood.map(neighbor => stateEvolution.output(neighbor.concatWithNodeFeature(feature), false))
+      .foldRight[INDArray](new NDArray(feature.rows(), feature.columns()))((acc, data) => acc.addi(data))
+    val result = outputEvaluation.output(state, false)
+    NodeState(state, result)
+  }
+}
 object GraphNeuralNetwork {
-  sealed class GraphLayer(val input : Int, val output : Int, val activation: Activation) {
-
+  case class NeighborhoodData(feature : INDArray, state : INDArray, edgeFeature : INDArray) {
+    def concatWithNodeFeature(nodeFeature : INDArray) : INDArray = {
+      new NDArray(nodeFeature :: feature :: state :: edgeFeature :: Nil map { node => node.toDoubleMatrix } reduce { _ ++ _ })
+    }
   }
-
-  type GraphLayerData = (Int, Activation)
-
-  sealed case class GraphNetworkBuilder(val input : Int, private val layers : Seq[GraphLayerData] = Seq.empty) {
-    def layer(output : Int, activation : Activation = Activation.RELU) = this.copy(layers = layers :+ (output, activation))
-    //def build() : GraphNeuralNetwork = layers.
-  }
-
+  case class NodeState(state : INDArray, output : INDArray)
 }

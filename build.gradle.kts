@@ -32,6 +32,7 @@ dependencies {
     implementation("org.encog:encog-core:3.3.0")
     // ScaFi version
     implementation("it.unibo.scafi:scafi-core_$scalaVersionMajor:$scafiVersion")
+    implementation("it.unibo.scafi:scafi-simulator_$scalaVersionMajor:$scafiVersion")
     // Scala Dependencies
     implementation("org.scala-lang:scala-library:$scalaVersionMajor$scalaVersionMinor")
     // Jenetics
