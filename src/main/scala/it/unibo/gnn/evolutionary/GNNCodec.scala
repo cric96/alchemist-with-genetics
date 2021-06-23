@@ -9,18 +9,18 @@ import org.nd4j.linalg.cpu.nativecpu.NDArray
 
 import scala.jdk.CollectionConverters.{IterableHasAsScala, ListHasAsScala}
 
-case class GNNCodec(stateEvolutionShape : MultiLayerConfiguration, outputEvaluationShape : MultiLayerConfiguration, val maxWeight : Int = 1) {
+case class GNNCodec(stateEvolutionShape : MultiLayerConfiguration, outputEvaluationShape : MultiLayerConfiguration, maxWeight : Int = 1) {
   def loadFromGenotype(genotype : Genotype[DoubleGene]) : GraphNeuralNetwork = {
-    val (stateChromosomes, outputChromosome) = genotype.chromosome().asScala.splitAt(stateEvolutionShape.getConfs.size())
-    val stateNetwork = loadNetworkFromGenotype(new Genotype[DoubleGene](stateChromosomes), stateEvolutionShape)
-    val outputNetwork = loadNetworkFromGenotype(new Genotype[DoubleGene](outputChromosome), outputEvaluationShape)
+    val (stateChromosomes, outputChromosome) = genotype.asScala.splitAt(stateEvolutionShape.getConfs.size())
+    val stateNetwork = loadNetworkFromGenotype(JeneticsFacade.of[DoubleGene](stateChromosomes.toSeq:_*), stateEvolutionShape)
+    val outputNetwork = loadNetworkFromGenotype(JeneticsFacade.of[DoubleGene](outputChromosome.toSeq:_*), outputEvaluationShape)
     GraphNeuralNetwork(stateNetwork, outputNetwork)
   }
 
   def genotypeFactory(): Genotype[DoubleGene] = {
     val layers : Seq[DenseLayer] = layersFromConfiguration(stateEvolutionShape) :++ layersFromConfiguration(outputEvaluationShape)
     val stateEvolutionChromosomes = layers.map(layer => DoubleChromosome.of(-maxWeight, maxWeight, layer.getNOut.toInt))
-    new Genotype[DoubleGene](stateEvolutionChromosomes)
+    JeneticsFacade.of[DoubleGene](stateEvolutionChromosomes:_*)
   }
 
   private def layersFromConfiguration(config : MultiLayerConfiguration) : Seq[DenseLayer] = config.getConfs.asScala

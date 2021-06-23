@@ -6,14 +6,13 @@ import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.cpu.nativecpu.NDArray
 
 class ScafiHopCountGNN extends AggregateProgram with FieldUtils with StandardSensors {
-  private val network = sense[GraphNeuralNetwork]("network")
-  private val initial = sense[Array[Float]]("initialState")
-  private val initialFeature = sense[Array[Float]]("initialFeature")
   override def main(): Any = {
-    rep[INDArray](new NDArray(initialFeature)) {
+    val network = sense[GraphNeuralNetwork]("network")
+    val initial = sense[Array[Float]]("initialState")
+    rep[INDArray](new NDArray(Array(-1.0f, sourceFeature))) {
       feature => {
-        rep[(INDArray, INDArray)]((new NDArray(Array(initial)), feature)) {
-          case (state, output) =>
+        val (_, output) = rep[(INDArray, INDArray)]((new NDArray(Array(initial)), feature)) {
+          case (state, _) =>
             val neighbourState = excludingSelf.reifyField(nbr(state))
             val labels = excludingSelf.reifyField(nbr(feature))
             val edgeLabels = excludingSelf.reifyField(nbr(new NDArray(Array(1.0f))))
@@ -21,8 +20,11 @@ class ScafiHopCountGNN extends AggregateProgram with FieldUtils with StandardSen
               .toList
             val result = network.eval(feature, neighborhoodData)
             (result.state, result.output)
-        }._2
+        }
+        new NDArray(Array(output.getDouble(0L).toFloat, sourceFeature))
       }
     }
   }
+
+  def sourceFeature : Float = sense("source")
 }
