@@ -13,7 +13,6 @@ case class GraphNeuralNetwork(stateEvolution : MultiLayerNetwork, outputEvaluati
     val state = neighborhood.map(neighbor => stateEvolution.output(neighbor.concatWithNodeFeature(feature), false))
       .foldRight[INDArray](new NDArray(1, stateSize))((acc, data) => acc.addi(data))
     val outputNetworkInput : INDArray = new NDArray(state :: feature :: Nil map { _.toDoubleVector.map(_.toFloat) } reduce { _ ++ _ })
-    println(outputNetworkInput.toDoubleVector.mkString(","))
     val result = outputEvaluation.output(outputNetworkInput, false)
     NodeState(state, result)
   }
