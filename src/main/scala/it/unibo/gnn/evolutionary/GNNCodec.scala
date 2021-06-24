@@ -10,8 +10,14 @@ import org.nd4j.linalg.cpu.nativecpu.NDArray
 import scala.jdk.CollectionConverters.{IterableHasAsScala, ListHasAsScala}
 
 case class GNNCodec(stateEvolutionShape : MultiLayerConfiguration, outputEvaluationShape : MultiLayerConfiguration, maxWeight : Int = 1) {
+  private val biasWeightCount = 1
   def loadFromGenotype(genotype : Genotype[DoubleGene]) : GraphNeuralNetwork = {
-    val (stateChromosomes, outputChromosome) = genotype.asScala.splitAt(stateEvolutionShape.getConfs.size())
+    val splitPoint = stateEvolutionShape.getConfs.asScala
+      .map(_.getLayer).collect { case l : DenseLayer => l}
+      .map(layer => layer.getNIn + biasWeightCount)
+      .sum
+
+    val (stateChromosomes, outputChromosome) = genotype.asScala.splitAt(splitPoint.toInt )
     val stateNetwork = loadNetworkFromGenotype(JeneticsFacade.of[DoubleGene](stateChromosomes.toSeq:_*), stateEvolutionShape)
     val outputNetwork = loadNetworkFromGenotype(JeneticsFacade.of[DoubleGene](outputChromosome.toSeq:_*), outputEvaluationShape)
     GraphNeuralNetwork(stateNetwork, outputNetwork)
@@ -19,7 +25,7 @@ case class GNNCodec(stateEvolutionShape : MultiLayerConfiguration, outputEvaluat
 
   def genotypeFactory(): Genotype[DoubleGene] = {
     val layers : Seq[DenseLayer] = layersFromConfiguration(stateEvolutionShape) :++ layersFromConfiguration(outputEvaluationShape)
-    val stateEvolutionChromosomes = layers.map(layer => DoubleChromosome.of(-maxWeight, maxWeight, layer.getNOut.toInt))
+    val stateEvolutionChromosomes = layers.flatMap(layer => (0 to layer.getNIn.toInt) map { _ => DoubleChromosome.of(-maxWeight, maxWeight, layer.getNOut.toInt) } )
     JeneticsFacade.of[DoubleGene](stateEvolutionChromosomes:_*)
   }
 
@@ -30,9 +36,10 @@ case class GNNCodec(stateEvolutionShape : MultiLayerConfiguration, outputEvaluat
 
   private def loadNetworkFromGenotype(genotype: Genotype[DoubleGene], config : MultiLayerConfiguration) : MultiLayerNetwork = {
     val layers = layersFromConfiguration(config)
-    val slicing = layers.map(_.getNIn.toInt)
+    val slicing = layers.map(_.getNIn.toInt + biasWeightCount)
     val chromosomes = genotype.asScala.toList
     val chromosomesForLayer = partitionWith(chromosomes, slicing)
+
     val linearLayerWeights = chromosomesForLayer.flatMap(chromosomeForLayer => chromosomeForLayer.flatMap { chromosome => chromosome.asScala.map(_.allele())} )
     val ndFormat : Array[Float] = linearLayerWeights.toArray.map(_.floatValue())
     val network = new MultiLayerNetwork(config)
