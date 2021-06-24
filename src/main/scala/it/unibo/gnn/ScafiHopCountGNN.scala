@@ -9,23 +9,24 @@ class ScafiHopCountGNN extends AggregateProgram with FieldUtils with StandardSen
   override def main(): Any = {
     val network = sense[GraphNeuralNetwork]("network")
     val initial = sense[Array[Float]]("initialState")
-    val innerLoop = rep[INDArray](new NDArray(Array(-1.0f, sourceFeature))) {
-      feature => {
-        val (_, output) = rep[(INDArray, INDArray)]((new NDArray(Array(initial)), feature)) {
+    val result = rep[Double](-1.0f) {
+      _ => {
+        val (_, output) = rep[(INDArray, INDArray)]((new NDArray(Array(initial)), sourceFeature)) {
           case (state, _) =>
             val neighbourState = excludingSelf.reifyField(nbr(state))
-            val labels = excludingSelf.reifyField(nbr(feature))
+            val feature = sourceFeature
+            val labels = excludingSelf.reifyField(feature)
             val edgeLabels = excludingSelf.reifyField(nbr(new NDArray(Array(1.0f))))
             val neighborhoodData = neighbourState.keys.map(id => NeighborhoodData(labels(id), neighbourState(id), edgeLabels(id)))
               .toList
             val result = network.eval(feature, neighborhoodData)
             (result.state, result.output)
         }
-        new NDArray(Array(output.getDouble(0L).toFloat, sourceFeature))
+        output.getDouble(0L)
       }
     }
-    innerLoop.getDouble(0L)
+    result
   }
 
-  def sourceFeature : Float = sense("source")
+  def sourceFeature : NDArray = new NDArray(Array(sense[Float]("source")))
 }

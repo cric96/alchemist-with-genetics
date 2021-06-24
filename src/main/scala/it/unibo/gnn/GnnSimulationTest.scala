@@ -1,7 +1,7 @@
 package it.unibo.gnn
 import io.jenetics.engine.{Engine, EvolutionResult, EvolutionStatistics, Limits}
 import io.jenetics.util.RandomRegistry
-import io.jenetics.{DoubleGene, Genotype}
+import io.jenetics.{DoubleGene, Genotype, Mutator, RouletteWheelSelector, SinglePointCrossover, TournamentSelector}
 import it.unibo.gnn.evolutionary.{GNNCodec, JeneticsFacade}
 import it.unibo.scafi.config.GridSettings
 import it.unibo.scafi.incarnations.BasicSimulationIncarnation._
@@ -12,11 +12,13 @@ import org.nd4j.linalg.activations.Activation
 import java.lang
 object GnnSimulationTest extends App {
   val seed = 42
+  val steady = 400
+  val populationSize = 400
   RandomRegistry.random(new java.util.Random(seed))
 
-  def spawnSimulation(program : AggregateProgram, length : Int = 200, network : Option[GraphNeuralNetwork] = None) : (NetworkSimulator, Map[ID, Double]) = {
+  def spawnSimulation(program : AggregateProgram, length : Int = 100, network : Option[GraphNeuralNetwork] = None) : (NetworkSimulator, Map[ID, Double]) = {
     val simulator = simulatorFactory.gridLike(
-      GridSettings(4, 4, 50, 50),
+      GridSettings(3, 3, 50, 50),
       60,
       seeds = Seeds(seed, seed, seed)
     )
@@ -39,19 +41,18 @@ object GnnSimulationTest extends App {
   }
 
   val (_, results) = spawnSimulation(hopCountProgram)
-
   val stateConfiguration = new NeuralNetConfiguration.Builder()
     .activation(Activation.RELU)
     .list(
-      new DenseLayer.Builder().nIn(9).nOut(8).build(),
-      new DenseLayer.Builder().nIn(8).nOut(6).build(),
+      new DenseLayer.Builder().nIn(7).nOut(6).build(),
+      new DenseLayer.Builder().nIn(6).nOut(6).build(),
       new DenseLayer.Builder().nIn(6).nOut(4).build()
     ).build()
 
   val outputConfiguration = new NeuralNetConfiguration.Builder()
     .activation(Activation.RELU)
     .list(
-      new DenseLayer.Builder().nIn(6).nOut(8).build(),
+      new DenseLayer.Builder().nIn(5).nOut(8).build(),
       new DenseLayer.Builder().nIn(4).nOut(2).build(),
       new DenseLayer.Builder().nIn(2).nOut(1).build()
     ).build()
@@ -66,14 +67,22 @@ object GnnSimulationTest extends App {
 
   val factory = codec.genotypeFactory()
   val runner : Engine[DoubleGene, lang.Double] = JeneticsFacade.doubleEngine[DoubleGene](genotype => fitness(genotype, codec), factory)
-    .populationSize(50)
+    .populationSize(populationSize)
+    .survivorsSelector(new TournamentSelector(5))
+    .offspringSelector(new RouletteWheelSelector())
+    .alterers(
+      new Mutator(0.115),
+      new SinglePointCrossover(0.16))
     .minimizing()
     .build()
+
   val statistics = EvolutionStatistics.ofNumber[lang.Double]()
   val result = runner
     .stream()
-    .limit(Limits.bySteadyFitness[lang.Double](10))
+    .limit(Limits.bySteadyFitness[lang.Double](steady))
+    .limit(Limits.byPopulationConvergence[lang.Double](0.1))
     .peek(e => statistics.accept(e))
+    .peek(e => println(s"Generation ${e.generation()}, max fitness : ${e.bestFitness()}"))
     .collect(EvolutionResult.toBestPhenotype[DoubleGene, lang.Double])
 
   println(statistics)
