@@ -10,8 +10,8 @@ import org.nd4j.linalg.cpu.nativecpu.NDArray
 import java.io.FileInputStream
 
 class ScafiHopCountGNNVisual extends AggregateProgram with FieldUtils with StandardSensors {
-  private val genotype = Readers.read[java.lang.Double, DoubleGene, DoubleChromosome](new FileInputStream("result.xml"), Readers.DoubleChromosome.reader())
-  private val network = NetworkConfiguration.codec.loadFromGenotype(genotype.get(0))
+  private val genotype = Readers.Genotype.read[java.lang.Double, DoubleGene, DoubleChromosome](new FileInputStream("result.xml"), Readers.DoubleChromosome.reader())
+  private val network = NetworkConfiguration.codec.loadFromGenotype(genotype)
   private val initialState = Array[Float](-1f, -1f, -1f, -1f)
   override def main(): Any = {
     val result = rep[Double](-1.0f) {
@@ -34,8 +34,7 @@ class ScafiHopCountGNNVisual extends AggregateProgram with FieldUtils with Stand
   }
 
   def sourceFeature : NDArray = {
-    println(mid())
-    val result = if(mid() == 1) { 1.0f } else { 0.0f }
+    val result = if(mid() == 0) { 1.0f } else { 0.0f }
     new NDArray(Array(Array(result)))
   }
 }

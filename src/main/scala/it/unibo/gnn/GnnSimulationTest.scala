@@ -18,7 +18,7 @@ object GnnSimulationTest extends App {
   val populationSize = 100
   RandomRegistry.random(random)
 
-  def spawnSimulation(program : AggregateProgram, length : Int = 100, network : Option[GraphNeuralNetwork] = None) : (NetworkSimulator, Map[ID, Double]) = {
+  def spawnSimulation(program : AggregateProgram, length : Int = 7, network : Option[GraphNeuralNetwork] = None) : (NetworkSimulator, Map[ID, Double]) = {
     val simulator = simulatorFactory.gridLike(
       GridSettings(3, 3, 50, 50),
       60,
@@ -29,7 +29,8 @@ object GnnSimulationTest extends App {
     simulator.addSensor("source", 0.0f)
     simulator.chgSensorValue("source", Set(1), 1.0f)
     simulator.addSensor("initialState", Array(-1.0f, -1.0f, -1.0f, -1.0f))
-    (0 to length) foreach { _ => simulator.exec(program)}
+    val ids = (0 to length).flatMap(_ => scala.util.Random.shuffle((0 until networkSimulator.ids.size).toList))
+    ids foreach ( simulator.exec(program, program.main(), _))
     val results = simulator.exports().map { case (id, data) => id -> data.get.root[Double]() }
     (networkSimulator, results)
   }
