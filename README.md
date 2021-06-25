@@ -25,3 +25,10 @@ simple and intuitive. Furthermore, in literature is used in different work with 
 
 Currently, there isn't any good result found. The fitness goes to 0 but, when I try the network in 
 a test set, the algorithm has not generalized well.
+
+##
+
+result.xml
+
+best fitness: 0.27718663215637207
+generation : 1085

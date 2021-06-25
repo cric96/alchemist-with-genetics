@@ -1,20 +1,22 @@
 package it.unibo.gnn
+import io.jenetics._
 import io.jenetics.engine.{Engine, EvolutionResult, EvolutionStatistics, Limits}
 import io.jenetics.util.RandomRegistry
-import io.jenetics.{DoubleGene, Genotype, Mutator, RouletteWheelSelector, SinglePointCrossover, TournamentSelector}
+import io.jenetics.xml.Writers
 import it.unibo.gnn.evolutionary.{GNNCodec, JeneticsFacade}
 import it.unibo.scafi.config.GridSettings
 import it.unibo.scafi.incarnations.BasicSimulationIncarnation._
-import org.deeplearning4j.nn.conf.NeuralNetConfiguration
-import org.deeplearning4j.nn.conf.layers.DenseLayer
-import org.nd4j.linalg.activations.Activation
-
+import java.io.FileOutputStream
 import java.lang
+import java.util.Random
+import scala.jdk.CollectionConverters.IterableHasAsScala
+import NetworkConfiguration._
 object GnnSimulationTest extends App {
   val seed = 42
-  val steady = 400
-  val populationSize = 400
-  RandomRegistry.random(new java.util.Random(seed))
+  val random = new Random(seed)
+  val steady = 100
+  val populationSize = 100
+  RandomRegistry.random(random)
 
   def spawnSimulation(program : AggregateProgram, length : Int = 100, network : Option[GraphNeuralNetwork] = None) : (NetworkSimulator, Map[ID, Double]) = {
     val simulator = simulatorFactory.gridLike(
@@ -27,9 +29,7 @@ object GnnSimulationTest extends App {
     simulator.addSensor("source", 0.0f)
     simulator.chgSensorValue("source", Set(1), 1.0f)
     simulator.addSensor("initialState", Array(-1.0f, -1.0f, -1.0f, -1.0f))
-
     (0 to length) foreach { _ => simulator.exec(program)}
-
     val results = simulator.exports().map { case (id, data) => id -> data.get.root[Double]() }
     (networkSimulator, results)
   }
@@ -40,28 +40,13 @@ object GnnSimulationTest extends App {
     }
   }
 
-  val (_, results) = spawnSimulation(hopCountProgram)
-  val stateConfiguration = new NeuralNetConfiguration.Builder()
-    .activation(Activation.RELU)
-    .list(
-      new DenseLayer.Builder().nIn(7).nOut(6).build(),
-      new DenseLayer.Builder().nIn(6).nOut(6).build(),
-      new DenseLayer.Builder().nIn(6).nOut(4).build()
-    ).build()
+  val (_, references) = spawnSimulation(hopCountProgram)
 
-  val outputConfiguration = new NeuralNetConfiguration.Builder()
-    .activation(Activation.RELU)
-    .list(
-      new DenseLayer.Builder().nIn(5).nOut(8).build(),
-      new DenseLayer.Builder().nIn(4).nOut(2).build(),
-      new DenseLayer.Builder().nIn(2).nOut(1).build()
-    ).build()
 
-  val codec = GNNCodec(stateConfiguration, outputConfiguration)
   def fitness(genotype : Genotype[DoubleGene], codec : GNNCodec) : Double = {
     val gnn = codec.loadFromGenotype(genotype)
     val (_, gnnResults) = spawnSimulation(new ScafiHopCountGNN(), network = Some(gnn))
-    val fitness = gnnResults.map { case (id, v) => results(id) - v }.map { value => Math.abs(value) }.sum
+    val fitness = gnnResults.map { case (id, v) => references(id) - v }.map { value => Math.abs(value) }.sum
     fitness
   }
 
@@ -71,24 +56,26 @@ object GnnSimulationTest extends App {
     .survivorsSelector(new TournamentSelector(5))
     .offspringSelector(new RouletteWheelSelector())
     .alterers(
-      new Mutator(0.115),
-      new SinglePointCrossover(0.16))
+      new Mutator(0.315),
+      new SinglePointCrossover(0.25))
     .minimizing()
     .build()
-
   val statistics = EvolutionStatistics.ofNumber[lang.Double]()
-  val result = runner
-    .stream()
-    .limit(Limits.bySteadyFitness[lang.Double](steady))
-    .limit(Limits.byPopulationConvergence[lang.Double](0.1))
-    .peek(e => statistics.accept(e))
-    .peek(e => println(s"Generation ${e.generation()}, max fitness : ${e.bestFitness()}"))
-    .collect(EvolutionResult.toBestPhenotype[DoubleGene, lang.Double])
-
-  println(statistics)
+  val result =
+    RandomRegistry.`with`(random, _ => {
+      runner.stream()
+        .limit(Limits.bySteadyFitness[lang.Double](steady))
+        .peek(e => statistics.accept(e))
+        .peek(e => println(s"Generation ${e.generation()}, mean fitness : ${e.population().map(_.fitness).asScala.map[Double](a => a).sum / e.population().size()}, best : ${e.bestFitness()}, worst : ${e.worstFitness()}"))
+        .collect(EvolutionResult.toBestPhenotype[DoubleGene, lang.Double])
+    })
 
   val gnn = codec.loadFromGenotype(result.genotype())
   val (_, gnnResult) = spawnSimulation(new ScafiHopCountGNN(), network = Some(gnn))
+  result.genotype()
   println(gnnResult)
-  println(results)
+  println(references)
+
+  val file = new FileOutputStream("result.xml")
+  Writers.Genotype.write[lang.Double, DoubleGene, DoubleChromosome](file, result.genotype(), Writers.DoubleChromosome.writer())
 }

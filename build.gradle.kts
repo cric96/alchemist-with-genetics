@@ -25,6 +25,8 @@ sourceSets {
     }
 }
 dependencies {
+    // Scala Dependencies
+    implementation("org.scala-lang:scala-library:$scalaVersionMajor$scalaVersionMinor")
     // The version of Alchemist can be controlled by changing the version.properties file
     implementation("it.unibo.alchemist:alchemist:_")
     implementation("it.unibo.alchemist:alchemist-incarnation-scafi:_")
@@ -33,11 +35,14 @@ dependencies {
     // ScaFi version
     implementation("it.unibo.scafi:scafi-core_$scalaVersionMajor:$scafiVersion")
     implementation("it.unibo.scafi:scafi-simulator_$scalaVersionMajor:$scafiVersion")
-    // Scala Dependencies
-    implementation("org.scala-lang:scala-library:$scalaVersionMajor$scalaVersionMinor")
+    implementation("it.unibo.scafi:scafi-simulator-gui_$scalaVersionMajor:$scafiVersion") {
+        isTransitive = false
+    }
     // Jenetics
     implementation("io.jenetics", "jenetics", jeneticsVersion)
     implementation("io.jenetics", "jenetics.prog", jeneticsVersion)
+    implementation("io.jenetics", "jenetics.xml", jeneticsVersion)
+    implementation("io.jenetics:prngine:1.1.0")
     // Deep Learning4J
     implementation("org.deeplearning4j", "deeplearning4j-core", deepLearningVersion)
     implementation("org.nd4j", "nd4j-native-platform", deepLearningVersion)
