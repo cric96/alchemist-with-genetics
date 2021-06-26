@@ -7,6 +7,7 @@ import org.deeplearning4j.nn.conf.layers.DenseLayer
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
 import org.nd4j.linalg.cpu.nativecpu.NDArray
 
+import scala.annotation.tailrec
 import scala.jdk.CollectionConverters.{IterableHasAsScala, ListHasAsScala}
 
 case class GNNCodec(stateEvolutionShape : MultiLayerConfiguration, outputEvaluationShape : MultiLayerConfiguration, maxWeight : Int = 1) {
@@ -48,6 +49,7 @@ case class GNNCodec(stateEvolutionShape : MultiLayerConfiguration, outputEvaluat
   }
 
   private def partitionWith[E](elements : Seq[E], partitionSizes : Seq[Int]) : Seq[Seq[E]] = {
+    @tailrec
     def tailRecPartition(elements : Seq[E], partitionSizes : Seq[Int], result : Seq[Seq[E]] = Seq.empty) : Seq[Seq[E]] = partitionSizes match {
       case head :: rest =>
         val (partition, restPartitions) = elements.splitAt(head)
