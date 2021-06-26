@@ -8,8 +8,12 @@ import org.nd4j.linalg.cpu.nativecpu.NDArray
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 case class GraphNeuralNetwork(stateEvolution : MultiLayerNetwork, outputEvaluation : MultiLayerNetwork) {
-  private val layers = stateEvolution.getLayerWiseConfigurations.getConfs.asScala.map(_.getLayer)
-  private val stateSize = layers.collect { case layer : DenseLayer => layer }.head.getNOut
+  private val layers = stateEvolution.getLayerWiseConfigurations
+    .getConfs
+    .asScala
+    .map(_.getLayer)
+    .collect { case dense : DenseLayer => dense}
+  private val stateSize = layers.reverse.head.getNOut
   def eval(feature : INDArray, neighborhood: List[NeighborhoodData]) : NodeState = {
     val state = neighborhood.map(neighbor => stateEvolution.output(neighbor.concatWithNodeFeature(feature), false))
       .foldRight[INDArray](new NDArray(1, stateSize))((acc, data) => acc.addi(data))
