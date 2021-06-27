@@ -29,8 +29,8 @@ object GnnSimulationTest extends App {
   val sourceOnValue = 1.0f
   val sourceId = 1
   // genetics constants
-  val steady = 100
-  val populationSize = 100
+  val steady = 10
+  val populationSize = 300
   RandomRegistry.random(random)
   // utility for creating ScaFi simulation, return the simulator and the exports produced
   def spawnSimulation(program : AggregateProgram, length : Int = 7, network : Option[GraphNeuralNetwork] = None) : (NetworkSimulator, Map[ID, Double]) = {

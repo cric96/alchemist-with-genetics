@@ -1,10 +1,10 @@
-# AC + Neuro Evolution
+# AC + Evolutionary Algorithm
 
-This project provides an example of Neuroevolution and Aggregate Computing combination.
+This project provides an example of Evolutionary Algorithm (NEAT) and Aggregate Computing combination.
 
 ## Why
 
-Aggregate computing aims at declaring global behaviour in a declarative way. So, why we should use something like Neuroevolution? If we use it we could lose expressiveness?
+Aggregate computing aims at declaring global behaviour in a declarative way. So, why we should use something like genetics algorithms? If we use it we could lose expressiveness?
 
 In Aggregate computing, despite its great power, happens to build building blocks that fail
 in a real-case application (one of the most problematic blocks is Sparse Choice).
@@ -18,9 +18,10 @@ application logic, remain the same, so we don't lose it at all.
 I use [Alchemist]() as a simulator to evaluate the fitness function of an aggregate program.
 The target program is simple (the classic hop count).
 
-As a Neuroevolution algorithm, I choose NEAT (Neuroevolution of augmenting topologies) because it is
+As a Evolutionary algorithms, I choose NEAT (Neuroevolution of augmenting topologies) because it is
 simple and intuitive. Furthermore, in literature is used in different work with good results.
 
+As exploratory testing, I try to evolve Graph Neural Network using plain Evolutionary algorithm.
 ## 🔴 Results
 
 Currently, there isn't any good result found. The fitness goes to 0 but, when I try the network in 
