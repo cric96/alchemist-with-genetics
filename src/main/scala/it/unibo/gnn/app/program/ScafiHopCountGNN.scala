@@ -1,6 +1,7 @@
-package it.unibo.gnn
+package it.unibo.gnn.app.program
 
-import it.unibo.gnn.GraphNeuralNetwork.NeighborhoodData
+import it.unibo.gnn.model.GraphNeuralNetwork
+import it.unibo.gnn.model.GraphNeuralNetwork.NeighborhoodData
 import it.unibo.scafi.incarnations.BasicSimulationIncarnation._
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.cpu.nativecpu.NDArray

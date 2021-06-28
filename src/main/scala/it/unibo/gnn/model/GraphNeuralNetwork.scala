@@ -1,6 +1,6 @@
-package it.unibo.gnn
+package it.unibo.gnn.model
 
-import it.unibo.gnn.GraphNeuralNetwork.{NeighborhoodData, NodeState}
+import it.unibo.gnn.model.GraphNeuralNetwork.{NeighborhoodData, NodeState}
 import org.deeplearning4j.nn.conf.layers.DenseLayer
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
 import org.nd4j.linalg.api.ndarray.INDArray

@@ -1,10 +1,13 @@
-package it.unibo.gnn
-import io.jenetics._
+package it.unibo.gnn.app
+
 import io.jenetics.engine.{Engine, EvolutionResult, EvolutionStatistics, Limits}
 import io.jenetics.util.RandomRegistry
 import io.jenetics.xml.Writers
-import it.unibo.gnn.NetworkConfiguration._
+import io.jenetics._
+import NetworkConfiguration.nonLinearCodec
+import it.unibo.gnn.app.program.ScafiHopCountGNN
 import it.unibo.gnn.evolutionary.{GNNCodec, JeneticsFacade}
+import it.unibo.gnn.model.GraphNeuralNetwork
 import it.unibo.scafi.config.GridSettings
 import it.unibo.scafi.incarnations.BasicSimulationIncarnation._
 
@@ -12,6 +15,7 @@ import java.io.FileOutputStream
 import java.lang
 import java.util.Random
 import scala.jdk.CollectionConverters.IterableHasAsScala
+
 object GnnSimulationTest extends App {
   // Constants
   /// Environment constants
@@ -33,8 +37,9 @@ object GnnSimulationTest extends App {
   val steady = 50
   val populationSize = 500
   RandomRegistry.random(random)
+
   // utility for creating ScaFi simulation, return the simulator and the exports produced
-  def spawnSimulation(program : AggregateProgram, length : Int = 7, network : Option[GraphNeuralNetwork] = None) : (NetworkSimulator, Map[ID, Double]) = {
+  def spawnSimulation(program: AggregateProgram, length: Int = 7, network: Option[GraphNeuralNetwork] = None): (NetworkSimulator, Map[ID, Double]) = {
     val simulator = simulatorFactory.gridLike(gridSetting, radius, seeds = Seeds(seed, seed, seed))
     network.foreach(simulator.addSensor(networkSensor, _))
     val networkSimulator = simulator.asInstanceOf[NetworkSimulator] //unsafe
@@ -42,25 +47,32 @@ object GnnSimulationTest extends App {
     simulator.chgSensorValue(sourceSensor, Set(sourceId), sourceOnValue)
     simulator.addSensor(stateSensor, initialStateValue)
     val ids = (0 to length).flatMap(_ => scala.util.Random.shuffle((0 until networkSimulator.ids.size).toList))
-    ids foreach ( simulator.exec(program, program.main(), _))
+    ids foreach (simulator.exec(program, program.main(), _))
     val results = simulator.exports().map { case (id, data) => id -> data.get.root[Double]() }
     (networkSimulator, results)
   }
-  def statisticsByGeneration(e: EvolutionResult[DoubleGene, lang.Double]) : Unit = {
+
+  def statisticsByGeneration(e: EvolutionResult[DoubleGene, lang.Double]): Unit = {
     val meanFitness = e.population().map(_.fitness).asScala.map[Double](a => a).sum / e.population().size()
     println(s"Generation ${e.generation()}, mean fitness : ${meanFitness}, best : ${e.bestFitness()}, worst : ${e.worstFitness()}")
   }
+
   // fitness used to valuate the solution
-  def fitness(genotype : Genotype[DoubleGene], codec : GNNCodec) : Double = {
+  def fitness(genotype: Genotype[DoubleGene], codec: GNNCodec): Double = {
     val gnn = codec.loadFromGenotype(genotype)
     val (_, gnnResults) = spawnSimulation(new ScafiHopCountGNN(), network = Some(gnn))
     val fitness = gnnResults.map { case (id, v) => references(id) - v }.map { value => Math.abs(value) }.sum
     fitness
   }
+
   // standard hop count program
   val hopCountProgram = new AggregateProgram with FieldUtils {
     override def main(): Any = rep(Double.PositiveInfinity) {
-      value => mux(mid() == sourceId) { 0.0 } { minHoodPlus(nbr(value) + 1) }
+      value => mux(mid() == sourceId) {
+        0.0
+      } {
+        minHoodPlus(nbr(value) + 1)
+      }
     }
   }
   // create the ground truth
@@ -69,7 +81,7 @@ object GnnSimulationTest extends App {
   /// factory of graph neural network encoded in terms of genotype
   val factory = nonLinearCodec.genotypeFactory()
   /// jenetics engine used, it describes the evolutionary algorithms that will be used.
-  val runner : Engine[DoubleGene, lang.Double] = JeneticsFacade.doubleEngine[DoubleGene](genotype => fitness(genotype, nonLinearCodec), factory)
+  val runner: Engine[DoubleGene, lang.Double] = JeneticsFacade.doubleEngine[DoubleGene](genotype => fitness(genotype, nonLinearCodec), factory)
     .populationSize(populationSize)
     .survivorsSelector(new TournamentSelector(5))
     .offspringSelector(new RouletteWheelSelector())

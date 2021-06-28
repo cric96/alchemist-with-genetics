@@ -1,8 +1,9 @@
-package it.unibo.gnn
+package it.unibo.gnn.app.program
 
 import io.jenetics.xml.Readers
 import io.jenetics.{DoubleChromosome, DoubleGene}
-import it.unibo.gnn.GraphNeuralNetwork.NeighborhoodData
+import it.unibo.gnn.app.NetworkConfiguration
+import it.unibo.gnn.model.GraphNeuralNetwork.NeighborhoodData
 import it.unibo.scafi.incarnations.BasicSimulationIncarnation._
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.cpu.nativecpu.NDArray

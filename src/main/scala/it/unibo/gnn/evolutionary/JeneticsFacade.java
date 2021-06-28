@@ -16,5 +16,4 @@ public class JeneticsFacade {
     public static <G extends Gene<?, G>> Engine.Builder<G, Double> doubleEngine(Function<Genotype<G>, Double> fitness, Factory<Genotype<G>> factory) {
         return Engine.builder(fitness, factory);
     }
-
 }
