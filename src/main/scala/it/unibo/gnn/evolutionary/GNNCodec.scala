@@ -1,8 +1,8 @@
 package it.unibo.gnn.evolutionary
 
 import io.jenetics.{DoubleGene, Genotype}
-import it.unibo.gnn.model.GraphNeuralNetwork.NonLinearGraphNeuralNetwork ralNetwork.NonLinearGraphNeuralNetwork
 import it.unibo.gnn.model.GraphNeuralNetwork
+import it.unibo.gnn.model.GraphNeuralNetwork.NonLinearGraphNeuralNetwork
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration
 
 trait GNNCodec extends NetworkCodec[GraphNeuralNetwork]
