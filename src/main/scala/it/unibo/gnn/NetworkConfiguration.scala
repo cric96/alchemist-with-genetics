@@ -1,8 +1,9 @@
 package it.unibo.gnn
 
 import it.unibo.gnn.evolutionary.GNNCodec
-import org.deeplearning4j.nn.conf.{MultiLayerConfiguration, NeuralNetConfiguration}
+import it.unibo.gnn.evolutionary.GNNCodec.NonLinearGNNCodec
 import org.deeplearning4j.nn.conf.layers.DenseLayer
+import org.deeplearning4j.nn.conf.{MultiLayerConfiguration, NeuralNetConfiguration}
 import org.nd4j.linalg.activations.Activation
 
 object NetworkConfiguration {
@@ -21,5 +22,5 @@ object NetworkConfiguration {
       new DenseLayer.Builder().nIn(8).nOut(4).build(),
       new DenseLayer.Builder().nIn(4).nOut(1).build()
     ).build()
-  val codec : GNNCodec = GNNCodec(stateConfiguration, outputConfiguration, maxWeight = 2)
+  val nonLinearCodec : GNNCodec = NonLinearGNNCodec(stateConfiguration, outputConfiguration, maxWeight = 2)
 }

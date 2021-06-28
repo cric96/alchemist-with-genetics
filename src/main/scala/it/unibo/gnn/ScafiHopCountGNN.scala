@@ -6,6 +6,7 @@ import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.cpu.nativecpu.NDArray
 
 class ScafiHopCountGNN extends AggregateProgram with FieldUtils with StandardSensors {
+  private val constantField = Array(1.0f)
   override def main(): Any = {
     val network = sense[GraphNeuralNetwork]("network")
     val initial = sense[Array[Float]]("initialState")
@@ -16,7 +17,7 @@ class ScafiHopCountGNN extends AggregateProgram with FieldUtils with StandardSen
             val neighbourState = excludingSelf.reifyField(nbr(state))
             val feature = sourceFeature
             val labels = excludingSelf.reifyField(feature)
-            val edgeLabels = excludingSelf.reifyField(nbr(new NDArray(Array(1.0f))))
+            val edgeLabels = excludingSelf.reifyField(nbr(new NDArray(constantField)))
             val neighborhoodData = neighbourState.keys.map(id => NeighborhoodData(labels(id), neighbourState(id), edgeLabels(id)))
               .toList
             val result = network.eval(feature, neighborhoodData)
