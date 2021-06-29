@@ -32,17 +32,17 @@ object GraphNeuralNetwork {
     def eval(feature : INDArray, neighborhood: List[NeighborhoodData]) : NodeState = {
       val local = biasNetwork.output(feature)
       val stateDimension = local.length()
-      val factor = mu / (stateDimension) * neighborhood.size
+      val factor = mu / stateDimension * neighborhood.size
       val neighbourEvaluation = neighborhood.map(data => (data.state, data.concatWithNodeFeature(feature)))
-        .map { case (neighbourState, data) => (neighbourState, neighbourNetwork.output(data))}
+        .map { case (neighbourState, data) => (neighbourState, neighbourNetwork.output(data, false))}
         .map { case (neighbourState, matrix) => (neighbourState, matrix.reshape(stateDimension, stateDimension)) }
         .map { case (neighbourState, matrix) => (neighbourState, matrix) }
         .map { case (xn, w) => w.mulRowVector(xn) }
         .map { array => array.mul(factor) }
         .foldRight[INDArray](new NDArray(1, stateDimension))((acc, data) => acc.addi(data))
-      val aggregation = outputEvaluation.output(neighbourEvaluation, false)
-      val state = aggregation.sum(local)
-      val output = outputEvaluation.output(state, false)
+      val state = neighbourEvaluation.add(local)
+      val size = concat(feature, state)
+      val output = outputEvaluation.output(size, false)
       NodeState(state, output)
     }
   }
@@ -56,4 +56,9 @@ object GraphNeuralNetwork {
     }
   }
   case class NodeState(state : INDArray, output : INDArray)
+
+  def concat(ndarrays : INDArray*) : NDArray = {
+    val flatten = ndarrays.map { node => node.toDoubleVector.map(_.toFloat)} reduce { _ ++ _ }
+    new NDArray(flatten)
+  }
 }

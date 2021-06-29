@@ -2,7 +2,7 @@ package it.unibo.gnn.app.program
 
 import io.jenetics.xml.Readers
 import io.jenetics.{DoubleChromosome, DoubleGene, Genotype}
-import it.unibo.gnn.app.NetworkConfiguration
+import it.unibo.gnn.app.NetworkConfigurations
 import it.unibo.gnn.model.GraphNeuralNetwork
 import it.unibo.gnn.model.GraphNeuralNetwork.NeighborhoodData
 import it.unibo.scafi.incarnations.BasicSimulationIncarnation._
@@ -11,7 +11,11 @@ import org.nd4j.linalg.cpu.nativecpu.NDArray
 
 import java.io.FileInputStream
 trait ScafiHopCountGNNVisual extends AggregateProgram with FieldUtils with StandardSensors {
-  protected val genotype: Genotype[DoubleGene] = Readers.Genotype.read[java.lang.Double, DoubleGene, DoubleChromosome](new FileInputStream("result.xml"), Readers.DoubleChromosome.reader())
+  protected val fileName : String
+  protected val genotype: Genotype[DoubleGene] = Readers.Genotype.read[java.lang.Double, DoubleGene, DoubleChromosome](
+    new FileInputStream(fileName),
+    Readers.DoubleChromosome.reader()
+  )
   protected val network : GraphNeuralNetwork
   private val initialState = Array[Float](-1f, -1f, -1f, -1f)
   override def main(): Any = {
@@ -41,10 +45,12 @@ trait ScafiHopCountGNNVisual extends AggregateProgram with FieldUtils with Stand
 }
 
 class NonLinearGNNVisual extends ScafiHopCountGNNVisual {
-  protected val network: GraphNeuralNetwork = NetworkConfiguration.nonLinearCodec.loadFromGenotype(genotype)
+  protected val fileName : String = NetworkConfigurations.nonLinearFile
+  protected val network: GraphNeuralNetwork = NetworkConfigurations.nonLinearCodec.loadFromGenotype(genotype)
 }
 
 class LinearGNNVisual extends ScafiHopCountGNNVisual {
-  protected val network: GraphNeuralNetwork = NetworkConfiguration.nonLinearCodec.loadFromGenotype(genotype)
+  protected val fileName : String = NetworkConfigurations.linearFile
+  protected val network: GraphNeuralNetwork = NetworkConfigurations.nonLinearCodec.loadFromGenotype(genotype)
 }
 

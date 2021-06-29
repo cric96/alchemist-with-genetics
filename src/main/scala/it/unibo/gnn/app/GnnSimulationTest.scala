@@ -1,10 +1,9 @@
 package it.unibo.gnn.app
 
+import io.jenetics._
 import io.jenetics.engine.{Engine, EvolutionResult, EvolutionStatistics, Limits}
 import io.jenetics.util.RandomRegistry
 import io.jenetics.xml.Writers
-import io.jenetics._
-import NetworkConfiguration.nonLinearCodec
 import it.unibo.gnn.app.program.ScafiHopCountGNN
 import it.unibo.gnn.evolutionary.{GNNCodec, JeneticsFacade}
 import it.unibo.gnn.model.GraphNeuralNetwork
@@ -16,30 +15,34 @@ import java.lang
 import java.util.Random
 import scala.jdk.CollectionConverters.IterableHasAsScala
 
-object GnnSimulationTest extends App {
+object LinearGnnSimulationTest
+  extends GnnSimulationTest(NetworkConfigurations.linearCodec, NetworkConfigurations.linearFile) with App
+object NonLinearGnnSimulationTest
+  extends GnnSimulationTest(NetworkConfigurations.nonLinearCodec, NetworkConfigurations.nonLinearFile) with App
+
+abstract class GnnSimulationTest(val codec : GNNCodec, val outputFile : String) {
   // Constants
   /// Environment constants
-  val seed = 42
-  val random = new Random(seed)
-  val gridSetting = GridSettings(3, 3, 50, 50)
+  private val seed = 42
+  private val random = new Random(seed)
+  private val gridSetting = GridSettings(3, 3, 50, 50)
   /// Scafi constants
-  val radius = 60
+  private val radius = 60
   //// Sensors
-  val networkSensor = "network"
-  val stateSensor = "initialState"
-  val sourceSensor = "source"
+  private val networkSensor = "network"
+  private val stateSensor = "initialState"
+  private val sourceSensor = "source"
   //// Sensors values
-  val initialSourceValue = 0.0f
-  val initialStateValue = Array(-1.0f, -1.0f, -1.0f, 1.0f)
-  val sourceOnValue = 1.0f
-  val sourceId = 1
+  private val initialSourceValue = 0.0f
+  private val initialStateValue = Array(-1.0f, -1.0f, -1.0f, 1.0f)
+  private val sourceOnValue = 1.0f
+  private val sourceId = 1
   // Genetics constants
-  val steady = 50
-  val populationSize = 500
+  private val steady = 50
+  private val populationSize = 1
   RandomRegistry.random(random)
-
   // utility for creating ScaFi simulation, return the simulator and the exports produced
-  def spawnSimulation(program: AggregateProgram, length: Int = 7, network: Option[GraphNeuralNetwork] = None): (NetworkSimulator, Map[ID, Double]) = {
+  private def spawnSimulation(program: AggregateProgram, length: Int = 7, network: Option[GraphNeuralNetwork] = None): (NetworkSimulator, Map[ID, Double]) = {
     val simulator = simulatorFactory.gridLike(gridSetting, radius, seeds = Seeds(seed, seed, seed))
     network.foreach(simulator.addSensor(networkSensor, _))
     val networkSimulator = simulator.asInstanceOf[NetworkSimulator] //unsafe
@@ -52,13 +55,13 @@ object GnnSimulationTest extends App {
     (networkSimulator, results)
   }
 
-  def statisticsByGeneration(e: EvolutionResult[DoubleGene, lang.Double]): Unit = {
+  private def statisticsByGeneration(e: EvolutionResult[DoubleGene, lang.Double]): Unit = {
     val meanFitness = e.population().map(_.fitness).asScala.map[Double](a => a).sum / e.population().size()
     println(s"Generation ${e.generation()}, mean fitness : ${meanFitness}, best : ${e.bestFitness()}, worst : ${e.worstFitness()}")
   }
 
   // fitness used to valuate the solution
-  def fitness(genotype: Genotype[DoubleGene], codec: GNNCodec): Double = {
+  private def fitness(genotype: Genotype[DoubleGene], codec: GNNCodec): Double = {
     val gnn = codec.loadFromGenotype(genotype)
     val (_, gnnResults) = spawnSimulation(new ScafiHopCountGNN(), network = Some(gnn))
     val fitness = gnnResults.map { case (id, v) => references(id) - v }.map { value => Math.abs(value) }.sum
@@ -66,7 +69,7 @@ object GnnSimulationTest extends App {
   }
 
   // standard hop count program
-  val hopCountProgram = new AggregateProgram with FieldUtils {
+  private val hopCountProgram = new AggregateProgram with FieldUtils {
     override def main(): Any = rep(Double.PositiveInfinity) {
       value => mux(mid() == sourceId) {
         0.0
@@ -76,24 +79,26 @@ object GnnSimulationTest extends App {
     }
   }
   // create the ground truth
-  val (_, references) = spawnSimulation(hopCountProgram)
+  private val (_, references) = spawnSimulation(hopCountProgram)
   // genetics part
   /// factory of graph neural network encoded in terms of genotype
-  val factory = nonLinearCodec.genotypeFactory()
+  private val factory = codec.genotypeFactory()
   /// jenetics engine used, it describes the evolutionary algorithms that will be used.
-  val runner: Engine[DoubleGene, lang.Double] = JeneticsFacade.doubleEngine[DoubleGene](genotype => fitness(genotype, nonLinearCodec), factory)
-    .populationSize(populationSize)
-    .survivorsSelector(new TournamentSelector(5))
-    .offspringSelector(new RouletteWheelSelector())
-    .alterers(
-      new Mutator(0.315),
-      new SinglePointCrossover(0.25))
-    .minimizing()
-    .build()
+  private val runner: Engine[DoubleGene, lang.Double] =
+    JeneticsFacade.doubleEngine[DoubleGene](genotype => fitness(genotype, codec), factory)
+      .populationSize(populationSize)
+      .survivorsSelector(new TournamentSelector(5))
+      .offspringSelector(new RouletteWheelSelector())
+      .alterers(
+        new Mutator(0.315),
+        new SinglePointCrossover(0.25)
+      )
+      .minimizing()
+      .build()
   //a mutable object used to gather evolutionary statistics
-  val statistics = EvolutionStatistics.ofNumber[lang.Double]()
+  private val statistics = EvolutionStatistics.ofNumber[lang.Double]()
   //start the evolutionary algorithm
-  val bestResult =
+  private val bestResult =
     RandomRegistry.`with`(random, _ => { //with is used to give the reproducibility of tests
       runner.stream()
         .limit(Limits.bySteadyFitness[lang.Double](steady))
@@ -101,10 +106,9 @@ object GnnSimulationTest extends App {
         .peek(statisticsByGeneration)
         .collect(EvolutionResult.toBestPhenotype[DoubleGene, lang.Double])
     })
-  val gnn = nonLinearCodec.loadFromGenotype(bestResult.genotype())
-  val (_, gnnResult) = spawnSimulation(new ScafiHopCountGNN(), network = Some(gnn))
-  bestResult.genotype()
-  val file = new FileOutputStream("result.xml")
+  private val gnn = codec.loadFromGenotype(bestResult.genotype())
+  private val (_, gnnResult) = spawnSimulation(new ScafiHopCountGNN(), network = Some(gnn))
+  private val file = new FileOutputStream("result.xml")
   Writers.Genotype.write[lang.Double, DoubleGene, DoubleChromosome](file, bestResult.genotype(), Writers.DoubleChromosome.writer())
   println(gnnResult)
   println(references)
