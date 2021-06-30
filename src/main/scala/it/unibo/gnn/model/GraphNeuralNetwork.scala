@@ -33,13 +33,13 @@ object GraphNeuralNetwork {
       val local = biasNetwork.output(feature)
       val stateDimension = local.length()
       val factor = mu / stateDimension * neighborhood.size
-      val neighbourEvaluation = neighborhood.map(data => (data.state, data.concatWithNodeFeature(feature)))
+      val neighbourEvaluation = neighborhood.map(data => (data.state, data.concatFeatureAndEdge(feature)))
         .map { case (neighbourState, data) => (neighbourState, neighbourNetwork.output(data, false))}
         .map { case (neighbourState, matrix) => (neighbourState, matrix.reshape(stateDimension, stateDimension)) }
         .map { case (neighbourState, matrix) => (neighbourState, matrix) }
-        .map { case (xn, w) => w.mulRowVector(xn) }
+        .map { case (xn, w) => w.mmul(xn.transpose()).transpose() }
         .map { array => array.mul(factor) }
-        .foldRight[INDArray](new NDArray(1, stateDimension))((acc, data) => acc.addi(data))
+        .foldRight[INDArray](new NDArray(1, stateDimension))((acc, data) => acc.add(data))
       val state = neighbourEvaluation.add(local)
       val size = concat(feature, state)
       val output = outputEvaluation.output(size, false)

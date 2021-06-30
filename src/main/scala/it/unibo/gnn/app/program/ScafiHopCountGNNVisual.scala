@@ -11,8 +11,8 @@ import org.nd4j.linalg.cpu.nativecpu.NDArray
 
 import java.io.FileInputStream
 trait ScafiHopCountGNNVisual extends AggregateProgram with FieldUtils with StandardSensors {
-  protected val fileName : String
-  protected val genotype: Genotype[DoubleGene] = Readers.Genotype.read[java.lang.Double, DoubleGene, DoubleChromosome](
+  protected def fileName : String
+  protected def genotype: Genotype[DoubleGene] = Readers.Genotype.read[java.lang.Double, DoubleGene, DoubleChromosome](
     new FileInputStream(fileName),
     Readers.DoubleChromosome.reader()
   )
@@ -51,6 +51,6 @@ class NonLinearGNNVisual extends ScafiHopCountGNNVisual {
 
 class LinearGNNVisual extends ScafiHopCountGNNVisual {
   protected val fileName : String = NetworkConfigurations.linearFile
-  protected val network: GraphNeuralNetwork = NetworkConfigurations.nonLinearCodec.loadFromGenotype(genotype)
+  protected val network: GraphNeuralNetwork = NetworkConfigurations.linearCodec.loadFromGenotype(genotype)
 }
 

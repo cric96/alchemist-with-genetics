@@ -15,9 +15,8 @@ object NetworkConfigurations {
   val biasConfiguration: MultiLayerConfiguration = new NeuralNetConfiguration.Builder()
     .activation(Activation.TANH)
     .list(
-      new DenseLayer.Builder().nIn(featureSize).nOut(8).build(),
-      new DenseLayer.Builder().nIn(8).nOut(6).build(),
-      new DenseLayer.Builder().nIn(6).nOut(stateSize).build()
+      new DenseLayer.Builder().nIn(featureSize).nOut(4).build(),
+      new DenseLayer.Builder().nIn(4).nOut(stateSize).build()
     )
     .build()
 
@@ -26,7 +25,7 @@ object NetworkConfigurations {
     .list(
       new DenseLayer.Builder().nIn(featureSize + edgeSize + featureSize).nOut(8).build(),
       new DenseLayer.Builder().nIn(8).nOut(6).build(),
-      new DenseLayer.Builder().nIn(6).nOut(stateSize).build()
+      new DenseLayer.Builder().nIn(6).nOut(stateSize * stateSize).build()
     )
     .build()
   val stateConfiguration: MultiLayerConfiguration = new NeuralNetConfiguration.Builder()

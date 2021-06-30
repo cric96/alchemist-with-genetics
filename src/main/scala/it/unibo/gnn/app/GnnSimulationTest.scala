@@ -17,6 +17,7 @@ import scala.jdk.CollectionConverters.IterableHasAsScala
 
 object LinearGnnSimulationTest
   extends GnnSimulationTest(NetworkConfigurations.linearCodec, NetworkConfigurations.linearFile) with App
+
 object NonLinearGnnSimulationTest
   extends GnnSimulationTest(NetworkConfigurations.nonLinearCodec, NetworkConfigurations.nonLinearFile) with App
 
@@ -39,7 +40,7 @@ abstract class GnnSimulationTest(val codec : GNNCodec, val outputFile : String) 
   private val sourceId = 1
   // Genetics constants
   private val steady = 50
-  private val populationSize = 1
+  private val populationSize = 100
   RandomRegistry.random(random)
   // utility for creating ScaFi simulation, return the simulator and the exports produced
   private def spawnSimulation(program: AggregateProgram, length: Int = 7, network: Option[GraphNeuralNetwork] = None): (NetworkSimulator, Map[ID, Double]) = {
@@ -108,7 +109,7 @@ abstract class GnnSimulationTest(val codec : GNNCodec, val outputFile : String) 
     })
   private val gnn = codec.loadFromGenotype(bestResult.genotype())
   private val (_, gnnResult) = spawnSimulation(new ScafiHopCountGNN(), network = Some(gnn))
-  private val file = new FileOutputStream("result.xml")
+  private val file = new FileOutputStream(outputFile)
   Writers.Genotype.write[lang.Double, DoubleGene, DoubleChromosome](file, bestResult.genotype(), Writers.DoubleChromosome.writer())
   println(gnnResult)
   println(references)
