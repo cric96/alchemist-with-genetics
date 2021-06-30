@@ -2,22 +2,22 @@ package it.unibo.gnn.app.program
 
 import io.jenetics.xml.Readers
 import io.jenetics.{DoubleChromosome, DoubleGene, Genotype}
-import it.unibo.gnn.app.NetworkConfigurations
+import it.unibo.gnn.app.{NetworkConfiguration, NetworkConfigurations}
 import it.unibo.gnn.model.GraphNeuralNetwork
-import it.unibo.gnn.model.GraphNeuralNetwork.NeighborhoodData
+import it.unibo.gnn.model.GraphNeuralNetwork.{NeighborhoodData, concat}
 import it.unibo.scafi.incarnations.BasicSimulationIncarnation._
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.cpu.nativecpu.NDArray
 
 import java.io.FileInputStream
 trait ScafiHopCountGNNVisual extends AggregateProgram with FieldUtils with StandardSensors {
-  protected def fileName : String
+  protected def config : NetworkConfiguration
   protected def genotype: Genotype[DoubleGene] = Readers.Genotype.read[java.lang.Double, DoubleGene, DoubleChromosome](
-    new FileInputStream(fileName),
+    new FileInputStream(config.outputFile),
     Readers.DoubleChromosome.reader()
   )
-  protected val network : GraphNeuralNetwork
-  private val initialState = Array[Float](-1f, -1f, -1f, -1f)
+  protected val network : GraphNeuralNetwork = config.codec.loadFromGenotype(genotype)
+  private val initialState =  (0 until config.stateSize).map(_ => -1f).toArray
   override def main(): Any = {
     val result = rep[Double](-1.0f) {
       _ => {
@@ -45,12 +45,10 @@ trait ScafiHopCountGNNVisual extends AggregateProgram with FieldUtils with Stand
 }
 
 class NonLinearGNNVisual extends ScafiHopCountGNNVisual {
-  protected val fileName : String = NetworkConfigurations.nonLinearFile
-  protected val network: GraphNeuralNetwork = NetworkConfigurations.nonLinearCodec.loadFromGenotype(genotype)
+  override protected def config: NetworkConfiguration = NetworkConfigurations.nonLinearConfig
 }
 
 class LinearGNNVisual extends ScafiHopCountGNNVisual {
-  protected val fileName : String = NetworkConfigurations.linearFile
-  protected val network: GraphNeuralNetwork = NetworkConfigurations.linearCodec.loadFromGenotype(genotype)
+  override protected def config: NetworkConfiguration = NetworkConfigurations.linearConfig
 }
 

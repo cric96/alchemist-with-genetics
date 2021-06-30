@@ -48,12 +48,8 @@ object GraphNeuralNetwork {
   }
   //Data model
   case class NeighborhoodData(feature : INDArray, state : INDArray, edgeFeature : INDArray) {
-    def concatWithNodeFeature(nodeFeature : INDArray) : INDArray = {
-      new NDArray(nodeFeature :: feature :: state :: edgeFeature :: Nil map { node => node.toDoubleVector.map(_.toFloat) } reduce { _ ++ _ })
-    }
-    def concatFeatureAndEdge(nodeFeature : INDArray) : INDArray = {
-      new NDArray(nodeFeature :: feature :: edgeFeature :: Nil map { node => node.toDoubleVector.map(_.toFloat) } reduce { _ ++ _ })
-    }
+    def concatWithNodeFeature(nodeFeature : INDArray) : INDArray = concat(nodeFeature, feature, state, edgeFeature)
+    def concatFeatureAndEdge(nodeFeature : INDArray) : INDArray = concat(nodeFeature, feature, edgeFeature)
   }
   case class NodeState(state : INDArray, output : INDArray)
 

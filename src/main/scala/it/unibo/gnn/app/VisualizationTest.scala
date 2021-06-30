@@ -7,7 +7,7 @@ import it.unibo.scafi.simulation.frontend.{Launcher, Settings}
 trait VisualizationTest extends Launcher {
   Settings.ShowConfigPanel = false
   Settings.Sim_NbrRadius = 0.4
-  Settings.Sim_NumNodes = 9
+  Settings.Sim_NumNodes = 16
   Settings.Sim_Topology = Topologies.Grid
 }
 

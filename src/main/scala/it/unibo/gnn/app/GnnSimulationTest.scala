@@ -16,12 +16,12 @@ import java.util.Random
 import scala.jdk.CollectionConverters.IterableHasAsScala
 
 object LinearGnnSimulationTest
-  extends GnnSimulationTest(NetworkConfigurations.linearCodec, NetworkConfigurations.linearFile) with App
+  extends GnnSimulationTest(NetworkConfigurations.linearConfig) with App
 
 object NonLinearGnnSimulationTest
-  extends GnnSimulationTest(NetworkConfigurations.nonLinearCodec, NetworkConfigurations.nonLinearFile) with App
+  extends GnnSimulationTest(NetworkConfigurations.nonLinearConfig) with App
 
-abstract class GnnSimulationTest(val codec : GNNCodec, val outputFile : String) {
+abstract class GnnSimulationTest(config : NetworkConfiguration) {
   // Constants
   /// Environment constants
   private val seed = 42
@@ -35,12 +35,14 @@ abstract class GnnSimulationTest(val codec : GNNCodec, val outputFile : String) 
   private val sourceSensor = "source"
   //// Sensors values
   private val initialSourceValue = 0.0f
-  private val initialStateValue = Array(-1.0f, -1.0f, -1.0f, 1.0f)
+  private val initialStateValue = (0 until config.stateSize).map(_ => -1f).toArray
   private val sourceOnValue = 1.0f
   private val sourceId = 1
   // Genetics constants
   private val steady = 50
-  private val populationSize = 100
+  private val populationSize = 500
+  // Utility
+  private val codec = config.codec
   RandomRegistry.random(random)
   // utility for creating ScaFi simulation, return the simulator and the exports produced
   private def spawnSimulation(program: AggregateProgram, length: Int = 7, network: Option[GraphNeuralNetwork] = None): (NetworkSimulator, Map[ID, Double]) = {
@@ -109,7 +111,7 @@ abstract class GnnSimulationTest(val codec : GNNCodec, val outputFile : String) 
     })
   private val gnn = codec.loadFromGenotype(bestResult.genotype())
   private val (_, gnnResult) = spawnSimulation(new ScafiHopCountGNN(), network = Some(gnn))
-  private val file = new FileOutputStream(outputFile)
+  private val file = new FileOutputStream(config.outputFile)
   Writers.Genotype.write[lang.Double, DoubleGene, DoubleChromosome](file, bestResult.genotype(), Writers.DoubleChromosome.writer())
   println(gnnResult)
   println(references)
