@@ -13,7 +13,7 @@ trait GraphNeuralNetwork {
 }
 
 object GraphNeuralNetwork {
-  case class NonLinearGraphNeuralNetwork(stateEvolution : MultiLayerNetwork, outputEvaluation : MultiLayerNetwork) extends GraphNeuralNetwork {
+  case class NonLinearGraphNeuralNetwork(stateEvolution : MultiLayerNetwork, aggregationNetwork : MultiLayerNetwork, outputEvaluation : MultiLayerNetwork) extends GraphNeuralNetwork {
     private val layers = stateEvolution.getLayerWiseConfigurations
       .getConfs
       .asScala
@@ -22,7 +22,8 @@ object GraphNeuralNetwork {
     private val stateSize = layers.reverse.head.getNOut
     def eval(feature : INDArray, neighborhood: List[NeighborhoodData]) : NodeState = {
       val state = neighborhood.map(neighbor => stateEvolution.output(neighbor.concatWithNodeFeature(feature), false))
-        .foldRight[INDArray](new NDArray(1, stateSize))((acc, data) => acc.addi(data))
+        .reduceOption((acc, data) => aggregationNetwork.output(concat(acc, data)))
+        .getOrElse(new NDArray(1, stateSize))
       val outputNetworkInput : INDArray = new NDArray(state :: feature :: Nil map { _.toDoubleVector.map(_.toFloat) } reduce { _ ++ _ })
       val result = outputEvaluation.output(outputNetworkInput, false)
       NodeState(state, result)
@@ -39,7 +40,8 @@ object GraphNeuralNetwork {
         .map { case (neighbourState, matrix) => (neighbourState, matrix) }
         .map { case (xn, w) => w.mmul(xn.transpose()).transpose() }
         .map { array => array.mul(factor) }
-        .foldRight[INDArray](new NDArray(1, stateDimension))((acc, data) => acc.add(data))
+        .reduceOption((acc, data) => acc.add(data))
+        .getOrElse(new NDArray(1, stateDimension))
       val state = neighbourEvaluation.add(local)
       val size = concat(feature, state)
       val output = outputEvaluation.output(size, false)

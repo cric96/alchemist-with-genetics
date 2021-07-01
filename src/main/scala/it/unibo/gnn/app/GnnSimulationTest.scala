@@ -37,15 +37,15 @@ abstract class GnnSimulationTest(config : NetworkConfiguration) {
   private val initialSourceValue = 0.0f
   private val initialStateValue = (0 until config.stateSize).map(_ => -1f).toArray
   private val sourceOnValue = 1.0f
-  private val sourceId = 1
+  private val sourceId = 0
   // Genetics constants
-  private val steady = 50
+  private val steady = 200
   private val populationSize = 500
   // Utility
   private val codec = config.codec
   RandomRegistry.random(random)
   // utility for creating ScaFi simulation, return the simulator and the exports produced
-  private def spawnSimulation(program: AggregateProgram, length: Int = 7, network: Option[GraphNeuralNetwork] = None): (NetworkSimulator, Map[ID, Double]) = {
+  private def spawnSimulation(program: AggregateProgram, length: Int = 10, network: Option[GraphNeuralNetwork] = None): (NetworkSimulator, Map[ID, Double]) = {
     val simulator = simulatorFactory.gridLike(gridSetting, radius, seeds = Seeds(seed, seed, seed))
     network.foreach(simulator.addSensor(networkSensor, _))
     val networkSimulator = simulator.asInstanceOf[NetworkSimulator] //unsafe
