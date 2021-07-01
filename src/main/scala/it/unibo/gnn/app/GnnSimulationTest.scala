@@ -22,6 +22,8 @@ object NonLinearGnnSimulationTest
   extends GnnSimulationTest(NetworkConfigurations.nonLinearConfig) with App
 
 abstract class GnnSimulationTest(config : NetworkConfiguration) {
+
+  @annotation.nowarn
   // Constants
   /// Environment constants
   private val seed = 42
@@ -39,7 +41,7 @@ abstract class GnnSimulationTest(config : NetworkConfiguration) {
   private val sourceOnValue = 1.0f
   private val sourceId = 0
   // Genetics constants
-  private val steady = 200
+  private val steady = 50
   private val populationSize = 500
   // Utility
   private val codec = config.codec
@@ -93,8 +95,8 @@ abstract class GnnSimulationTest(config : NetworkConfiguration) {
       .survivorsSelector(new TournamentSelector(5))
       .offspringSelector(new RouletteWheelSelector())
       .alterers(
-        new Mutator(0.315),
-        new SinglePointCrossover(0.25)
+        new Mutator(),
+        new SinglePointCrossover()
       )
       .minimizing()
       .build()

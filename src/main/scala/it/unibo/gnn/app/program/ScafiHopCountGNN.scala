@@ -12,11 +12,11 @@ class ScafiHopCountGNN extends AggregateProgram with FieldUtils with StandardSen
     val network = sense[GraphNeuralNetwork]("network")
     val initial = sense[Array[Float]]("initialState")
     val result = rep[Double](-1.0f) {
-      _ => {
-        val (_, output) = rep[(INDArray, INDArray)]((new NDArray(Array(initial)), sourceFeature)) {
+      out => {
+        val (_, output) = rep[(INDArray, INDArray)]((new NDArray(Array(initial)), sourceFeature(out.toFloat))) {
           case (state, _) =>
             val neighbourState = excludingSelf.reifyField(nbr(state))
-            val feature = sourceFeature
+            val feature = sourceFeature(out.toFloat)
             val labels = excludingSelf.reifyField(feature)
             val edgeLabels = excludingSelf.reifyField(nbr(new NDArray(constantField)))
             val neighborhoodData = neighbourState.keys.map(id => NeighborhoodData(labels(id), neighbourState(id), edgeLabels(id)))
@@ -30,5 +30,5 @@ class ScafiHopCountGNN extends AggregateProgram with FieldUtils with StandardSen
     result
   }
 
-  def sourceFeature : NDArray = new NDArray(Array(sense[Float]("source")))
+  def sourceFeature(output : Float) : NDArray = new NDArray(Array(sense[Float]("source"), output))
 }

@@ -12,7 +12,7 @@ object GNNCodec {
                                 stateEvolutionShape : MultiLayerConfiguration,
                                 aggregationShape : MultiLayerConfiguration,
                                 outputEvaluationShape : MultiLayerConfiguration,
-                                maxWeight : Int = 1
+                                maxWeight : Double = 1
                               ) extends GNNCodec {
     private val MLPCodec = MultiLayerNetworkCodec(maxWeight, stateEvolutionShape, aggregationShape, outputEvaluationShape)
 
@@ -27,7 +27,7 @@ object GNNCodec {
   case class LinearGNNCodec(biasShape : MultiLayerConfiguration,
                             stateEvolutionShape : MultiLayerConfiguration,
                             outputEvaluationShape : MultiLayerConfiguration,
-                            maxWeight : Int = 1,
+                            maxWeight : Double = 1,
                             mu : Double = 1) extends GNNCodec {
     private val MLPCodec = MultiLayerNetworkCodec(maxWeight, biasShape, stateEvolutionShape, outputEvaluationShape)
 

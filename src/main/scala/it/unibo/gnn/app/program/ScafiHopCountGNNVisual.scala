@@ -32,7 +32,7 @@ trait ScafiHopCountGNNVisual extends AggregateProgram with FieldUtils with Stand
             val result = network.eval(feature, neighborhoodData)
             (result.state, result.output)
         }
-        output.getDouble(0L)
+        Math.round(output.getDouble(0L))
       }
     }
     result
