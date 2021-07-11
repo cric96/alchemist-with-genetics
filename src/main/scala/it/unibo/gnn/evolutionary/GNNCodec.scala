@@ -10,15 +10,14 @@ trait GNNCodec extends NetworkCodec[GraphNeuralNetwork]
 object GNNCodec {
   case class NonLinearGNNCodec(
                                 stateEvolutionShape : MultiLayerConfiguration,
-                                aggregationShape : MultiLayerConfiguration,
                                 outputEvaluationShape : MultiLayerConfiguration,
                                 maxWeight : Double = 1
                               ) extends GNNCodec {
-    private val MLPCodec = MultiLayerNetworkCodec(maxWeight, stateEvolutionShape, aggregationShape, outputEvaluationShape)
+    private val MLPCodec = MultiLayerNetworkCodec(maxWeight, stateEvolutionShape, outputEvaluationShape)
 
     def loadFromGenotype(genotype : Genotype[DoubleGene]) : GraphNeuralNetwork = {
-      val (state :: aggregation :: output :: Nil) = MLPCodec.loadFromGenotype(genotype)
-      NonLinearGraphNeuralNetwork(state, aggregation, output)
+      val (state :: output :: Nil) = MLPCodec.loadFromGenotype(genotype)
+      NonLinearGraphNeuralNetwork(state, output)
     }
 
     def genotypeFactory(): Genotype[DoubleGene] = MLPCodec.genotypeFactory()

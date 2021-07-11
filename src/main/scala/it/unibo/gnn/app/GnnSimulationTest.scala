@@ -22,8 +22,6 @@ object NonLinearGnnSimulationTest
   extends GnnSimulationTest(NetworkConfigurations.nonLinearConfig) with App
 
 abstract class GnnSimulationTest(config : NetworkConfiguration) {
-
-  @annotation.nowarn
   // Constants
   /// Environment constants
   private val seed = 42
@@ -42,7 +40,7 @@ abstract class GnnSimulationTest(config : NetworkConfiguration) {
   private val sourceId = 0
   // Genetics constants
   private val steady = 50
-  private val populationSize = 500
+  private val populationSize = 200
   // Utility
   private val codec = config.codec
   RandomRegistry.random(random)
@@ -61,8 +59,9 @@ abstract class GnnSimulationTest(config : NetworkConfiguration) {
   }
 
   private def statisticsByGeneration(e: EvolutionResult[DoubleGene, lang.Double]): Unit = {
-    val meanFitness = e.population().map(_.fitness).asScala.map[Double](a => a).sum / e.population().size()
-    println(s"Generation ${e.generation()}, mean fitness : ${meanFitness}, best : ${e.bestFitness()}, worst : ${e.worstFitness()}")
+    val valid = e.population().map(_.fitness()).asScala.map[Double](a => a).filter(_.isFinite)
+    val meanFitness = valid.sum / valid.size
+    println(s"Generation ${e.generation()}, mean fitness : ${meanFitness}, best : ${e.bestFitness()}, worst : ${valid.max}")
   }
 
   // fitness used to valuate the solution
@@ -93,9 +92,9 @@ abstract class GnnSimulationTest(config : NetworkConfiguration) {
     JeneticsFacade.doubleEngine[DoubleGene](genotype => fitness(genotype, codec), factory)
       .populationSize(populationSize)
       .survivorsSelector(new TournamentSelector(5))
-      .offspringSelector(new RouletteWheelSelector())
+      .offspringSelector(new ExponentialRankSelector())
       .alterers(
-        new Mutator(),
+        new Mutator(0.03),
         new SinglePointCrossover()
       )
       .minimizing()

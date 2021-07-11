@@ -13,17 +13,20 @@ trait GraphNeuralNetwork {
 }
 
 object GraphNeuralNetwork {
-  case class NonLinearGraphNeuralNetwork(stateEvolution : MultiLayerNetwork, aggregationNetwork : MultiLayerNetwork, outputEvaluation : MultiLayerNetwork) extends GraphNeuralNetwork {
+  case class NonLinearGraphNeuralNetwork(stateEvolution : MultiLayerNetwork, outputEvaluation : MultiLayerNetwork) extends GraphNeuralNetwork {
     private val layers = stateEvolution.getLayerWiseConfigurations
       .getConfs
       .asScala
       .map(_.getLayer)
       .collect { case dense : DenseLayer => dense}
     private val stateSize = layers.reverse.head.getNOut
+    private val zero = new NDArray((0 until stateSize.toInt).map(_ => 0f).toArray)
     def eval(feature : INDArray, neighborhood: List[NeighborhoodData]) : NodeState = {
       val state = neighborhood.map(neighbor => stateEvolution.output(neighbor.concatWithNodeFeature(feature), false))
-        .reduceOption((acc, data) => aggregationNetwork.output(concat(acc, data)))
-        .getOrElse(new NDArray(1, stateSize))
+        .reduceOption((acc, data) => acc.add(data))
+        .map(_.div(neighborhood.size))
+        .getOrElse(zero)
+
       val outputNetworkInput : INDArray = new NDArray(state :: feature :: Nil map { _.toDoubleVector.map(_.toFloat) } reduce { _ ++ _ })
       val result = outputEvaluation.output(outputNetworkInput, false)
       NodeState(state, result)

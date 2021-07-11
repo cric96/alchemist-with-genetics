@@ -20,11 +20,11 @@ trait ScafiHopCountGNNVisual extends AggregateProgram with FieldUtils with Stand
   private val initialState =  (0 until config.stateSize).map(_ => -1f).toArray
   override def main(): Any = {
     val result = rep[Double](-1.0f) {
-      _ => {
-        val (_, output) = rep[(INDArray, INDArray)]((new NDArray(initialState), sourceFeature)) {
+      out => {
+        val (_, output) = rep[(INDArray, INDArray)]((new NDArray(initialState), sourceFeature(out.toFloat))) {
           case (state, _) =>
             val neighbourState = excludingSelf.reifyField(nbr(state))
-            val feature = sourceFeature
+            val feature = sourceFeature(out.toFloat)
             val labels = excludingSelf.reifyField(feature)
             val edgeLabels = excludingSelf.reifyField(nbr(new NDArray(Array(1.0f))))
             val neighborhoodData = neighbourState.keys.map(id => NeighborhoodData(labels(id), neighbourState(id), edgeLabels(id)))
@@ -38,9 +38,9 @@ trait ScafiHopCountGNNVisual extends AggregateProgram with FieldUtils with Stand
     result
   }
 
-  def sourceFeature : NDArray = {
+  def sourceFeature(out : Float) : NDArray = {
     val result = if(mid() == 0) { 1.0f } else { 0.0f }
-    new NDArray(Array(Array(result)))
+    new NDArray(Array(Array(result, out)))
   }
 }
 
