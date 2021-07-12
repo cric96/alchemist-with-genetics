@@ -52,7 +52,7 @@ abstract class GnnSimulationTest(config : NetworkConfiguration) {
     simulator.addSensor(sourceSensor, initialSourceValue)
     simulator.chgSensorValue(sourceSensor, Set(sourceId), sourceOnValue)
     simulator.addSensor(stateSensor, initialStateValue)
-    val ids = (0 to length).flatMap(_ => scala.util.Random.shuffle((0 until networkSimulator.ids.size).toList))
+    val ids = (0 to length).flatMap(_ => 0 until networkSimulator.ids.size)
     ids foreach (simulator.exec(program, program.main(), _))
     val results = simulator.exports().map { case (id, data) => id -> data.get.root[Double]() }
     (networkSimulator, results)
@@ -92,10 +92,10 @@ abstract class GnnSimulationTest(config : NetworkConfiguration) {
     JeneticsFacade.doubleEngine[DoubleGene](genotype => fitness(genotype, codec), factory)
       .populationSize(populationSize)
       .survivorsSelector(new TournamentSelector(5))
-      .offspringSelector(new ExponentialRankSelector())
+      .offspringSelector(new RouletteWheelSelector())
       .alterers(
         new Mutator(0.03),
-        new SinglePointCrossover()
+        new MeanAlterer(0.6)
       )
       .minimizing()
       .build()

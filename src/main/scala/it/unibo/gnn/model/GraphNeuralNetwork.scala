@@ -9,7 +9,7 @@ import org.nd4j.linalg.cpu.nativecpu.NDArray
 import scala.jdk.CollectionConverters.ListHasAsScala
 
 trait GraphNeuralNetwork {
-  def eval(feature : INDArray, neighborhood: List[NeighborhoodData]) : NodeState
+  def eval(feature : INDArray, neighborhood: Seq[NeighborhoodData]) : NodeState
 }
 
 object GraphNeuralNetwork {
@@ -21,7 +21,7 @@ object GraphNeuralNetwork {
       .collect { case dense : DenseLayer => dense}
     private val stateSize = layers.reverse.head.getNOut
     private val zero = new NDArray((0 until stateSize.toInt).map(_ => 0f).toArray)
-    def eval(feature : INDArray, neighborhood: List[NeighborhoodData]) : NodeState = {
+    def eval(feature : INDArray, neighborhood: Seq[NeighborhoodData]) : NodeState = {
       val state = neighborhood.map(neighbor => stateEvolution.output(neighbor.concatWithNodeFeature(feature), false))
         .reduceOption((acc, data) => acc.add(data))
         .map(_.div(neighborhood.size))
@@ -33,7 +33,7 @@ object GraphNeuralNetwork {
     }
   }
   case class LinearGraphNeuralNetwork(biasNetwork : MultiLayerNetwork, neighbourNetwork : MultiLayerNetwork, outputEvaluation : MultiLayerNetwork, mu : Double) extends GraphNeuralNetwork {
-    def eval(feature : INDArray, neighborhood: List[NeighborhoodData]) : NodeState = {
+    def eval(feature : INDArray, neighborhood: Seq[NeighborhoodData]) : NodeState = {
       val local = biasNetwork.output(feature)
       val stateDimension = local.length()
       val factor = mu / stateDimension * neighborhood.size
