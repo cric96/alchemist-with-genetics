@@ -30,13 +30,16 @@ trait AggregateProgramSimulator {
 
 object AggregateProgramSimulator {
   type ID = Int
-  def simulatorFromGNN(gnn: GraphNeuralNetwork) : AggregateProgramSimulator = new AggregateProgramSimulator {
+  def simulatorFromGNN(gnn: GraphNeuralNetwork, featureUpdate : (INDArray, INDArray) => INDArray) : AggregateProgramSimulator = new AggregateProgramSimulator {
     override def evaluate(
       network: Network with NetworkOps,
       id: ID
     ): Network with NetworkOps = {
       val result = graphNetworkEvaluation(network, id)
-      network.updateState(id, result.state).updateOutput(id, result.output)
+      network
+        .updateState(id, result.state)
+        .updateFeature(id, featureUpdate(network.feature(id), result.output))
+        .updateOutput(id, result.output)
     }
 
     override def bulkEvaluation(
@@ -45,7 +48,10 @@ object AggregateProgramSimulator {
       ): Network with NetworkOps = {
       val results = ids.map(id => id -> graphNetworkEvaluation(network, id))
       results.foldLeft(network){
-        case(acc, (id, result)) => acc.updateState(id, result.state).updateOutput(id, result.output)
+        case(acc, (id, result)) => acc
+          .updateState(id, result.state)
+          .updateFeature(id, featureUpdate(network.feature(id), result.output))
+          .updateOutput(id, result.output)
       }
     }
 
