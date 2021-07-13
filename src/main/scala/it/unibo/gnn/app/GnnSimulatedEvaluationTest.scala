@@ -43,7 +43,7 @@ abstract class GnnSimulatedTest(config : NetworkConfiguration) {
   private val sourceId = 0
   // Genetics constants
   private val steady = 50
-  private val populationSize = 1000
+  private val populationSize = 200
   // Utility
   private val codec = config.codec
   RandomRegistry.random(random)
