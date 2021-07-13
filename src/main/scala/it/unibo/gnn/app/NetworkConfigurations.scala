@@ -75,7 +75,7 @@ object NetworkConfigurations {
     featureSize,
     edgeSize,
     outputSize,
-    NonLinearGNNCodec(stateConfiguration, outputConfiguration, maxWeight = 1.4),
+    NonLinearGNNCodec(stateConfiguration, outputConfiguration, maxWeight = 1),
     "result-non-linear.xml"
   )
 }

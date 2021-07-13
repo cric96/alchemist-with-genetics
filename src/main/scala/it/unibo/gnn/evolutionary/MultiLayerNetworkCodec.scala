@@ -1,6 +1,7 @@
 package it.unibo.gnn.evolutionary
 
 import io.jenetics.{DoubleChromosome, DoubleGene, Genotype}
+import it.unibo.gnn.model.NDArrayUtils.ndarray
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration
 import org.deeplearning4j.nn.conf.layers.DenseLayer
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
@@ -40,7 +41,7 @@ case class MultiLayerNetworkCodec(maxWeight : Double, networks : MultiLayerConfi
     val linearLayerWeights = chromosomesForLayer.flatMap(chromosomeForLayer => chromosomeForLayer.flatMap { chromosome => chromosome.asScala.map(_.allele())} )
     val ndFormat : Array[Float] = linearLayerWeights.toArray.map(_.floatValue())
     val network = new MultiLayerNetwork(config)
-    network.init(new NDArray(ndFormat), false)
+    network.init(ndarray(ndFormat), false)
     network
   }
 

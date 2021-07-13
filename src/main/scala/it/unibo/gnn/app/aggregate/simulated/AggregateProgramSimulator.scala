@@ -1,6 +1,6 @@
 package it.unibo.gnn.app.aggregate.simulated
 
-import it.unibo.gnn.app.aggregate.simulated.Network.{NetworkOps, NetworkWithOps}
+import it.unibo.gnn.app.aggregate.simulated.Network.NetworkWithOps
 import it.unibo.gnn.model.GraphNeuralNetwork
 import it.unibo.gnn.model.GraphNeuralNetwork.{NeighborhoodData, NodeState}
 import org.nd4j.linalg.api.ndarray.INDArray

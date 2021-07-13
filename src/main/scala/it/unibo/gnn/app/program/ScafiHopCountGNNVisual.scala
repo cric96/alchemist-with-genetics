@@ -4,10 +4,11 @@ import io.jenetics.xml.Readers
 import io.jenetics.{DoubleChromosome, DoubleGene, Genotype}
 import it.unibo.gnn.app.{NetworkConfiguration, NetworkConfigurations}
 import it.unibo.gnn.model.GraphNeuralNetwork
-import it.unibo.gnn.model.GraphNeuralNetwork.{NeighborhoodData, concat}
+import it.unibo.gnn.model.GraphNeuralNetwork.NeighborhoodData
+import it.unibo.gnn.model.NDArrayUtils.{nd, ndarray}
 import it.unibo.scafi.incarnations.BasicSimulationIncarnation._
 import org.nd4j.linalg.api.ndarray.INDArray
-import org.nd4j.linalg.cpu.nativecpu.NDArray
+import org.nd4j.linalg.factory.Nd4j
 
 import java.io.FileInputStream
 trait ScafiHopCountGNNVisual extends AggregateProgram with FieldUtils with StandardSensors {
@@ -21,12 +22,12 @@ trait ScafiHopCountGNNVisual extends AggregateProgram with FieldUtils with Stand
   override def main(): Any = {
     val result = rep[Double](-1.0f) {
       out => {
-        val (_, output) = rep[(INDArray, INDArray)]((new NDArray(initialState), sourceFeature(out.toFloat))) {
+        val (_, output) = rep[(INDArray, INDArray)]((ndarray(initialState), sourceFeature(out.toFloat))) {
           case (state, _) =>
             val neighbourState = excludingSelf.reifyField(nbr(state))
             val feature = sourceFeature(out.toFloat)
             val labels = excludingSelf.reifyField(feature)
-            val edgeLabels = excludingSelf.reifyField(nbr(new NDArray(Array(1.0f))))
+            val edgeLabels = excludingSelf.reifyField(nbr(nd(1.0f)))
             val neighborhoodData = neighbourState.keys.map(id => NeighborhoodData(labels(id), neighbourState(id), edgeLabels(id)))
               .toList
             val result = network.eval(feature, neighborhoodData)
@@ -38,9 +39,9 @@ trait ScafiHopCountGNNVisual extends AggregateProgram with FieldUtils with Stand
     result
   }
 
-  def sourceFeature(out : Float) : NDArray = {
+  def sourceFeature(out : Float) : INDArray = {
     val result = if(mid() == 0) { 1.0f } else { 0.0f }
-    new NDArray(Array(Array(result, out)))
+    nd(result, out)
   }
 }
 

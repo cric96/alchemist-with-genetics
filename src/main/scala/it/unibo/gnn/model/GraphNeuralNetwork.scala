@@ -1,10 +1,11 @@
 package it.unibo.gnn.model
 
 import it.unibo.gnn.model.GraphNeuralNetwork.{NeighborhoodData, NodeState}
+import it.unibo.gnn.model.NDArrayUtils._
 import org.deeplearning4j.nn.conf.layers.DenseLayer
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
 import org.nd4j.linalg.api.ndarray.INDArray
-import org.nd4j.linalg.cpu.nativecpu.NDArray
+import org.nd4j.linalg.factory.Nd4j
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 
@@ -20,14 +21,14 @@ object GraphNeuralNetwork {
       .map(_.getLayer)
       .collect { case dense : DenseLayer => dense}
     private val stateSize = layers.reverse.head.getNOut
-    private val zero = new NDArray((0 until stateSize.toInt).map(_ => 0f).toArray)
+    private val zero = ndarray((0 until stateSize.toInt).map(_ => 0f))
     def eval(feature : INDArray, neighborhood: Seq[NeighborhoodData]) : NodeState = {
       val state = neighborhood.map(neighbor => stateEvolution.output(neighbor.concatWithNodeFeature(feature), false))
         .reduceOption((acc, data) => acc.add(data))
         .map(_.div(neighborhood.size))
         .getOrElse(zero)
 
-      val outputNetworkInput : INDArray = new NDArray(state :: feature :: Nil map { _.toDoubleVector.map(_.toFloat) } reduce { _ ++ _ })
+      val outputNetworkInput : INDArray = ndarray(state :: feature :: Nil map { _.toDoubleVector.map(_.toFloat) } reduce { _ ++ _ })
       val result = outputEvaluation.output(outputNetworkInput, false)
       NodeState(state, result)
     }
@@ -44,7 +45,7 @@ object GraphNeuralNetwork {
         .map { case (xn, w) => w.mmul(xn.transpose()).transpose() }
         .map { array => array.mul(factor) }
         .reduceOption((acc, data) => acc.add(data))
-        .getOrElse(new NDArray(1, stateDimension))
+        .getOrElse(Nd4j.zeros(1, stateDimension))
       val state = neighbourEvaluation.add(local)
       val size = concat(feature, state)
       val output = outputEvaluation.output(size, false)
@@ -58,8 +59,4 @@ object GraphNeuralNetwork {
   }
   case class NodeState(state : INDArray, output : INDArray)
 
-  def concat(ndarrays : INDArray*) : NDArray = {
-    val flatten = ndarrays.map { node => node.toDoubleVector.map(_.toFloat)} reduce { _ ++ _ }
-    new NDArray(flatten)
-  }
 }

@@ -1,6 +1,5 @@
 package it.unibo.gnn.app.aggregate.simulated
 
-import it.unibo.gnn.app.aggregate.simulated.Network.ID
 import org.nd4j.linalg.api.ndarray.INDArray
 
 trait Network[ID] {
@@ -13,6 +12,16 @@ trait Network[ID] {
 
 object Network {
   type NetworkWithOps[ID] = Network[ID] with NetworkOps[ID]
+
+  def apply[ID](
+     nodes: Map[ID, INDArray],
+     outputMap: Map[ID, INDArray],
+     stateMap: Map[ID, INDArray],
+     neighbourhoodMap: Map[ID, Set[ID]],
+     archFeatureMap: Map[ID, Map[ID, INDArray]]
+  ) : NetworkWithOps[ID] = {
+    new NetworkImpl[ID](nodes, outputMap, stateMap, neighbourhoodMap, archFeatureMap)
+  }
   trait NetworkOps[ID] {
     self : Network[ID] =>
     def updateFeature(id: ID, data: INDArray): NetworkWithOps[ID]
@@ -22,7 +31,7 @@ object Network {
     def updateState(id: ID, state: INDArray): NetworkWithOps[ID]
   }
 
-  private[AggregateProgramSimulator] class NetworkImpl[ID](
+  private[Network] class NetworkImpl[ID](
       nodes: Map[ID, INDArray],
       outputMap: Map[ID, INDArray],
       stateMap: Map[ID, INDArray],
@@ -68,7 +77,7 @@ object Network {
       outputMap,
       stateMap,
       neighbourhoodMap,
-      archFeatureMap + (link -> data)
+      archFeatureMap // TODO
     )
 
     override def updateState(id: ID, state: INDArray): NetworkWithOps[ID] = new NetworkImpl(
